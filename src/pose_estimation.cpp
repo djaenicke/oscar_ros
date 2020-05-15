@@ -3,6 +3,7 @@
 #include "robo_car_if/footprint.h"
 #include <tf/transform_broadcaster.h>
 #include <nav_msgs/Odometry.h>
+#include <sensor_msgs/Imu.h>
 
 #define EMBEDDED_UPDATE_RATE 0.050 // (s)
 #define WHEEL_BASE   0.128         // (m)
@@ -17,6 +18,8 @@ static robo_car_if::Footprint robot_footprint;
 static ros::Subscriber state_sub;
 static ros::Publisher odom_pub;
 static ros::Publisher footprint_pub;
+static ros::Publisher imu_mpu_pub;
+static ros::Publisher imu_fxos_pub;
 static tf::TransformBroadcaster *odom_broadcaster_ptr;
 
 static ros::Time current_time, last_time;
@@ -32,8 +35,11 @@ int main(int argc, char **argv) {
   last_time = ros::Time::now();
 
   state_sub = nh.subscribe("robo_car_state", 100, StateMsgUpdateCallBack);
+  
   odom_pub = nh.advertise<nav_msgs::Odometry>("odom", 100);
   footprint_pub = nh.advertise<geometry_msgs::PolygonStamped>("robot_footprint", 100);
+  imu_mpu_pub = nh.advertise<sensor_msgs::Imu>("imu_mpu", 100);
+  imu_fxos_pub = nh.advertise<sensor_msgs::Imu>("imu_fxos", 100);
 
   odom_broadcaster_ptr = new tf::TransformBroadcaster();
 
@@ -54,6 +60,8 @@ int main(int argc, char **argv) {
 }
 
 void StateMsgUpdateCallBack(const robo_car_if::state::ConstPtr& msg) {
+  sensor_msgs::Imu mpu;
+  sensor_msgs::Imu fxos;
   double dt;
 
   // Compute time between state messages
@@ -62,6 +70,23 @@ void StateMsgUpdateCallBack(const robo_car_if::state::ConstPtr& msg) {
   last_time = current_time;
 
   ComputeOdometry(msg->l_wheel_fb, msg->r_wheel_fb, dt);
+
+  mpu.header.frame_id = "base_link";
+  mpu.header.stamp = current_time;
+  mpu.angular_velocity.x = msg->mpu_gx;
+  mpu.angular_velocity.y = msg->mpu_gy;
+  mpu.angular_velocity.z = msg->mpu_gz;
+  mpu.linear_acceleration.x = msg->mpu_ax;
+  mpu.linear_acceleration.y = msg->mpu_ay;
+  mpu.linear_acceleration.z = msg->mpu_az;
+  imu_mpu_pub.publish(mpu);
+
+  fxos.header.frame_id = "base_link";
+  fxos.header.stamp = current_time;
+  fxos.linear_acceleration.x = msg->fxos_ax;
+  fxos.linear_acceleration.y = msg->fxos_ay;
+  fxos.linear_acceleration.z = msg->fxos_az;
+  imu_fxos_pub.publish(fxos);
 }
 
 void ComputeOdometry(float l_w_speed, float r_w_speed, double dt) {
