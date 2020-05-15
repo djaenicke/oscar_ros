@@ -1,13 +1,10 @@
 #include "ros/ros.h"
 #include "robo_car_if/state.h"
 #include "robo_car_if/footprint.h"
+#include "robo_car_if/cals.h"
 #include <tf/transform_broadcaster.h>
 #include <nav_msgs/Odometry.h>
 #include <sensor_msgs/Imu.h>
-
-#define EMBEDDED_UPDATE_RATE 0.050 // (s)
-#define WHEEL_BASE   0.128         // (m)
-#define WHEEL_RADIUS 0.035         // (m)
 
 void StateMsgUpdateCallBack(const robo_car_if::state::ConstPtr& msg);
 void ComputeOdometry(float r_w_speed, float l_w_speed, double dt);

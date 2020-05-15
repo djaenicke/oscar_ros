@@ -122,9 +122,7 @@ include_directories(
 )
 
 ## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/robo_car_if.cpp
-# )
+add_library(go_to_point src/go_to_point.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -136,6 +134,7 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(teleop src/teleop.cpp)
 add_executable(pose_estimation src/pose_estimation.cpp)
+add_executable(simple_nav src/simple_nav.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -150,6 +149,7 @@ add_executable(pose_estimation src/pose_estimation.cpp)
 ## Specify libraries to link a library or executable target against
 target_link_libraries(teleop ${catkin_LIBRARIES})
 target_link_libraries(pose_estimation ${catkin_LIBRARIES})
+target_link_libraries(simple_nav go_to_point ${catkin_LIBRARIES})
 
 #############
 ## Install ##
