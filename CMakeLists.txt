@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   message_generation
+  tf
 )
 
 ## System dependencies are found with CMake's conventions
@@ -134,6 +135,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(teleop src/teleop.cpp)
+add_executable(pose_estimation src/pose_estimation.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -147,6 +149,7 @@ add_executable(teleop src/teleop.cpp)
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(teleop ${catkin_LIBRARIES})
+target_link_libraries(pose_estimation ${catkin_LIBRARIES})
 
 #############
 ## Install ##
