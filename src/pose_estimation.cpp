@@ -1,5 +1,6 @@
 #include "ros/ros.h"
 #include "robo_car_if/state.h"
+#include "robo_car_if/footprint.h"
 #include <tf/transform_broadcaster.h>
 #include <nav_msgs/Odometry.h>
 
@@ -10,9 +11,12 @@
 void StateMsgUpdateCallBack(const robo_car_if::state::ConstPtr& msg);
 void ComputeOdometry(float r_w_speed, float l_w_speed, double dt);
 
+static robo_car_if::Footprint robot_footprint;
+
 // Pubs and Subs
 static ros::Subscriber state_sub;
 static ros::Publisher odom_pub;
+static ros::Publisher footprint_pub;
 static tf::TransformBroadcaster *odom_broadcaster_ptr;
 
 static ros::Time current_time, last_time;
@@ -29,14 +33,22 @@ int main(int argc, char **argv) {
 
   state_sub = nh.subscribe("robo_car_state", 100, StateMsgUpdateCallBack);
   odom_pub = nh.advertise<nav_msgs::Odometry>("odom", 100);
+  footprint_pub = nh.advertise<geometry_msgs::PolygonStamped>("robot_footprint", 100);
 
   odom_broadcaster_ptr = new tf::TransformBroadcaster();
+
+  // Configure the robot's footprint as a rectangle for rviz
+  robot_footprint.SetPoint(robo_car_if::RR, -0.07, -0.08);
+  robot_footprint.SetPoint(robo_car_if::RL, -0.07,  0.08);
+  robot_footprint.SetPoint(robo_car_if::FL,  0.15,  0.08);
+  robot_footprint.SetPoint(robo_car_if::FR,  0.15, -0.08);
 
   // Process incoming state messages at 2 times the update rate
   ros::Rate loop_rate(1/(EMBEDDED_UPDATE_RATE/2)); // (Hz)
 
   while (ros::ok()) {
     ros::spinOnce();
+    footprint_pub.publish(robot_footprint.GetPolyStampedMsg());
     loop_rate.sleep();
   }
 }
