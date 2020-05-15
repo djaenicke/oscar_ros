@@ -1,5 +1,4 @@
 #include "ros/ros.h"
-#include "robo_car_if/state.h"
 #include "robo_car_if/cmd.h"
 #include <signal.h>
 #include <termios.h>
@@ -19,12 +18,10 @@ int main(int argc, char **argv) {
 
   robo_car_if::cmd cmd_msg;
 
-  ros::init(argc, argv, "robo_car_if");
+  ros::init(argc, argv, "teleop");
 
   ros::NodeHandle nh;
   ros::Publisher cmd_pub = nh.advertise<robo_car_if::cmd>("robo_car_cmd", 100);
-
-  ros::Rate loop_rate(1/0.025); // Loop rate in Hz
 
   // get the console in raw mode
   tcgetattr(kfd, &cooked);
@@ -87,11 +84,7 @@ int main(int argc, char **argv) {
       cmd_pub.publish(cmd_msg);
       dirty = false;
     }
-
-    ros::spinOnce();
-    loop_rate.sleep();
   }
-
   return 0;
 }
  
