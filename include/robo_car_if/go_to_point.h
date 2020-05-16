@@ -44,6 +44,7 @@ class GoToPointController {
   bool InRoute(void);
   robo_car_if::cmd GetCmdMsg(void);
   void UpdatePose(const nav_msgs::Odometry::ConstPtr& msg);
+  void GetPose(Pose_T * pose);
 };
 
 } // namespace robo_car_if

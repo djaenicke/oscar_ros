@@ -82,4 +82,10 @@ void GoToPointController::UpdatePose(const nav_msgs::Odometry::ConstPtr& msg) {
   pose_.theta = yaw;
 }
 
+void GoToPointController::GetPose(Pose_T * pose) {
+  pose->x = pose_.x;
+  pose->y = pose_.y;
+  pose->theta = pose_.theta;
+}
+
 } // namespace robo_car_if
