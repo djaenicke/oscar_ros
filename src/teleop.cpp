@@ -59,15 +59,15 @@ int main(int argc, char **argv) {
         break;
       case KEYCODE_L:
         puts("LEFT");
-        cmd_msg.r_wheel_sp = -6.0;
-        cmd_msg.l_wheel_sp =  6.0;
+        cmd_msg.r_wheel_sp =  6.0;
+        cmd_msg.l_wheel_sp = -6.0;
         cmd_msg.stop = 0;
         dirty = true;
         break;
       case KEYCODE_R:
         puts("RIGHT");
-        cmd_msg.r_wheel_sp =  6.0;
-        cmd_msg.l_wheel_sp = -6.0;
+        cmd_msg.r_wheel_sp = -6.0;
+        cmd_msg.l_wheel_sp =  6.0;
         cmd_msg.stop = 0;
         dirty = true;
         break;
@@ -87,4 +87,3 @@ int main(int argc, char **argv) {
   }
   return 0;
 }
- 

@@ -24,24 +24,28 @@ void GoToPointController::Execute(void) {
   float vr, vl;           /* Desired linear wheel velocities */
   float theta_d, theta_e; /* Heading difference and heading error */
   float omega;
+  float sp;
   float d; /* distance to destination */
 
   /* Compute the distance from the destination */
   d = sqrt(pow(dest_.x - pose_.x, 2) + pow(dest_.y - pose_.y, 2));
 
+  /* Compute the desired heading */
+  sp = atan2f(dest_.y - pose_.y, dest_.x - pose_.x);
+
   if (d > tol_) {
-    theta_d = heading_sp_ - pose_.theta;           /* Heading difference */
+    theta_d = sp - pose_.theta; /* Heading difference */
     theta_e = atan2f(sinf(theta_d), cosf(theta_d)); /* Heading error      */
 
     /* Proportional control */
     omega = kp_ * theta_e;
 
     /* Determine the required linear velocities */
-    vr = robot_v_ + (omega * WHEEL_BASE / 2);
-    vl = robot_v_ - (omega * WHEEL_BASE / 2);
+    vr = robot_v_ + (omega * (WHEEL_BASE / 2));
+    vl = robot_v_ - (omega * (WHEEL_BASE / 2));
 
     cmd_.r_wheel_sp = vr / WHEEL_RADIUS;
-    cmd_.r_wheel_sp = vl / WHEEL_RADIUS;
+    cmd_.l_wheel_sp = vl / WHEEL_RADIUS;
 
   } else {
     in_route_ = false;
@@ -53,12 +57,9 @@ void GoToPointController::SetTravelSpeed(float robot_v) {
   robot_v_ = robot_v;
 }
 
-void GoToPointController::UpdateDestination(Destination_T * dest) {
+void GoToPointController::UpdateDestination(Waypoint_T * dest) {
   dest_.x = dest->x;
   dest_.y = dest->y;
-
-  /* Compute the desired heading */
-  heading_sp_ = atan2f(dest_.x, dest_.y);
   in_route_ = true;
 }
 

@@ -17,7 +17,7 @@ namespace robo_car_if {
 typedef struct {
   float x;
   float y;
-} Destination_T;
+} Waypoint_T;
 
 typedef struct {
   float x;
@@ -31,8 +31,7 @@ class GoToPointController {
   float tol_;
   float kp_;
   bool in_route_ = false;
-  Destination_T dest_;
-  float heading_sp_;
+  Waypoint_T dest_;
   float robot_v_;
   robo_car_if::cmd cmd_;
 
@@ -40,7 +39,7 @@ class GoToPointController {
   GoToPointController(float tolerance, float gain, float travel_s);
   void Execute(void);
   void SetTravelSpeed(float robot_v);
-  void UpdateDestination(Destination_T* dest);
+  void UpdateDestination(Waypoint_T* dest);
   bool InRoute(void);
   robo_car_if::cmd GetCmdMsg(void);
   void UpdatePose(const nav_msgs::Odometry::ConstPtr& msg);
