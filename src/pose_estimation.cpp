@@ -6,6 +6,17 @@
 #include <nav_msgs/Odometry.h>
 #include <sensor_msgs/Imu.h>
 
+#define XX 0
+#define XY 1
+#define XZ 2
+#define YX 3
+#define YY 4
+#define YZ 5
+#define ZX 6
+#define ZY 7
+#define ZZ 8
+
+void InitEkfMsgs(void);
 void StateMsgUpdateCallBack(const robo_car_if::state::ConstPtr& msg);
 void ComputeOdometry(float r_w_speed, float l_w_speed, double dt);
 
@@ -18,6 +29,11 @@ static ros::Publisher footprint_pub;
 static ros::Publisher imu_mpu_pub;
 static ros::Publisher imu_fxos_pub;
 static tf::TransformBroadcaster *odom_broadcaster_ptr;
+
+static geometry_msgs::TransformStamped odom_trans;
+static nav_msgs::Odometry odom;
+static sensor_msgs::Imu mpu;
+static sensor_msgs::Imu fxos;
 
 static ros::Time current_time, last_time;
 static double x  = 0;
@@ -49,6 +65,8 @@ int main(int argc, char **argv) {
   // Process incoming state messages at 2 times the update rate
   ros::Rate loop_rate(1/(EMBEDDED_UPDATE_RATE/2)); // (Hz)
 
+  InitEkfMsgs();
+
   while (ros::ok()) {
     ros::spinOnce();
     footprint_pub.publish(robot_footprint.GetPolyStampedMsg());
@@ -56,9 +74,37 @@ int main(int argc, char **argv) {
   }
 }
 
+void InitEkfMsgs(void) {
+  mpu.header.frame_id = "base_link";
+  fxos.header.frame_id = "base_link";
+
+  odom_trans.header.frame_id = "odom";
+  odom_trans.child_frame_id = "base_link";
+
+  odom.header.frame_id = "odom";
+  odom.child_frame_id = "base_link";
+
+  for (uint8_t i = 0; i < ZZ; i++) {
+    mpu.orientation_covariance[i] = -1;
+    fxos.orientation_covariance[i] = -1;
+
+    mpu.angular_velocity_covariance[i] = -1;
+    fxos.angular_velocity_covariance[i] = -1;
+
+    mpu.linear_acceleration_covariance[i] = -1;
+    fxos.linear_acceleration_covariance[i] = -1;
+  }
+
+  mpu.angular_velocity_covariance[ZZ] = 1e-3;
+
+  mpu.linear_acceleration_covariance[XX] = 1e-5;
+  fxos.linear_acceleration_covariance[XX] = 1e-5;
+
+  mpu.linear_acceleration_covariance[YY] = 1e-5;
+  fxos.linear_acceleration_covariance[YY] = 1e-5;
+}
+
 void StateMsgUpdateCallBack(const robo_car_if::state::ConstPtr& msg) {
-  sensor_msgs::Imu mpu;
-  sensor_msgs::Imu fxos;
   double dt;
 
   // Compute time between state messages
@@ -68,7 +114,6 @@ void StateMsgUpdateCallBack(const robo_car_if::state::ConstPtr& msg) {
 
   ComputeOdometry(msg->l_wheel_fb, msg->r_wheel_fb, dt);
 
-  mpu.header.frame_id = "base_link";
   mpu.header.stamp = current_time;
   mpu.angular_velocity.x = msg->mpu_gx;
   mpu.angular_velocity.y = msg->mpu_gy;
@@ -78,7 +123,6 @@ void StateMsgUpdateCallBack(const robo_car_if::state::ConstPtr& msg) {
   mpu.linear_acceleration.z = msg->mpu_az;
   imu_mpu_pub.publish(mpu);
 
-  fxos.header.frame_id = "base_link";
   fxos.header.stamp = current_time;
   fxos.linear_acceleration.x = msg->fxos_ax;
   fxos.linear_acceleration.y = msg->fxos_ay;
@@ -87,9 +131,7 @@ void StateMsgUpdateCallBack(const robo_car_if::state::ConstPtr& msg) {
 }
 
 void ComputeOdometry(float l_w_speed, float r_w_speed, double dt) {
-  geometry_msgs::TransformStamped odom_trans;
   geometry_msgs::Quaternion odom_quat;
-  nav_msgs::Odometry odom;
 
   double vr = r_w_speed * WHEEL_RADIUS; // Right wheel translational velocity
   double vl = l_w_speed * WHEEL_RADIUS; // Right wheel translational velocity
@@ -108,8 +150,6 @@ void ComputeOdometry(float l_w_speed, float r_w_speed, double dt) {
 
   // First, we'll publish the transform over tf
   odom_trans.header.stamp = current_time;
-  odom_trans.header.frame_id = "odom";
-  odom_trans.child_frame_id = "base_link";
 
   odom_trans.transform.translation.x = x;
   odom_trans.transform.translation.y = y;
@@ -120,14 +160,12 @@ void ComputeOdometry(float l_w_speed, float r_w_speed, double dt) {
   odom_broadcaster_ptr->sendTransform(odom_trans);
 
   odom.header.stamp = current_time;
-  odom.header.frame_id = "odom";
 
   odom.pose.pose.position.x = x;
   odom.pose.pose.position.y = y;
   odom.pose.pose.position.z = 0.0;
   odom.pose.pose.orientation = odom_quat;
 
-  odom.child_frame_id = "base_link";
   odom.twist.twist.linear.x = v;
   odom.twist.twist.linear.y = 0;
   odom.twist.twist.angular.z = yaw_rate;

@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
 
   ros::init(argc, argv, "simple_nav");
   ros::NodeHandle nh;
-  ros::Subscriber odom_sub = nh.subscribe("odom", 100, &robo_car_if::GoToPointController::UpdatePose, &gtp_controller);
+  ros::Subscriber odom_sub = nh.subscribe("odometry/filtered", 100, &robo_car_if::GoToPointController::UpdatePose, &gtp_controller);
   ros::Publisher marker_pub = nh.advertise<visualization_msgs::Marker>("visualization_marker", 10);
   ros::Rate loop_rate(1/EXE_RATE); // (Hz)
   
