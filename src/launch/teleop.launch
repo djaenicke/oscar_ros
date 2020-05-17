@@ -1,4 +1,5 @@
 <launch>
+  <include file="$(find robo_car_if)/src/launch/ekf.launch"/>
   <node pkg="robo_car_if" type="pose_estimation" name="pose_estimation"/>
   <node pkg="robo_car_if" type="teleop" name="teleop"/>
 </launch>

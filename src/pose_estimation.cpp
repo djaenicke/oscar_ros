@@ -87,6 +87,10 @@ void StateMsgUpdateCallBack(const robo_car_if::state::ConstPtr& msg) {
 }
 
 void ComputeOdometry(float l_w_speed, float r_w_speed, double dt) {
+  geometry_msgs::TransformStamped odom_trans;
+  geometry_msgs::Quaternion odom_quat;
+  nav_msgs::Odometry odom;
+
   double vr = r_w_speed * WHEEL_RADIUS; // Right wheel translational velocity
   double vl = l_w_speed * WHEEL_RADIUS; // Right wheel translational velocity
   double yaw_rate = (vr - vl) / WHEEL_BASE; // Robot angular velocity
@@ -99,11 +103,10 @@ void ComputeOdometry(float l_w_speed, float r_w_speed, double dt) {
   y += delta_y;
   th += delta_th;
 
-  //since all odometry is 6DOF we'll need a quaternion created from yaw
-  geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(th);
+  // Since all odometry is 6DOF we'll need a quaternion created from yaw
+  odom_quat = tf::createQuaternionMsgFromYaw(th);
 
-  //first, we'll publish the transform over tf
-  geometry_msgs::TransformStamped odom_trans;
+  // First, we'll publish the transform over tf
   odom_trans.header.stamp = current_time;
   odom_trans.header.frame_id = "odom";
   odom_trans.child_frame_id = "base_link";
@@ -113,26 +116,21 @@ void ComputeOdometry(float l_w_speed, float r_w_speed, double dt) {
   odom_trans.transform.translation.z = 0.0;
   odom_trans.transform.rotation = odom_quat;
 
-  //send the transform
+  // Send the transform
   odom_broadcaster_ptr->sendTransform(odom_trans);
 
-  //next, we'll publish the odometry message over ROS
-  nav_msgs::Odometry odom;
   odom.header.stamp = current_time;
   odom.header.frame_id = "odom";
 
-  //set the position
   odom.pose.pose.position.x = x;
   odom.pose.pose.position.y = y;
   odom.pose.pose.position.z = 0.0;
   odom.pose.pose.orientation = odom_quat;
 
-  //set the velocity
   odom.child_frame_id = "base_link";
   odom.twist.twist.linear.x = v;
   odom.twist.twist.linear.y = 0;
   odom.twist.twist.angular.z = yaw_rate;
 
-  //publish the message
   odom_pub.publish(odom);
 }

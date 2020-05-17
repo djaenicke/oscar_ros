@@ -47,7 +47,9 @@ class Footprint {
     }
   }
 
-  geometry_msgs::PolygonStamped GetPolyStampedMsg(void) { return polygon_msg_; }
+  geometry_msgs::PolygonStamped GetPolyStampedMsg(void) {
+    return polygon_msg_;
+  }
 };
 
 } // namespace robo_car_if
