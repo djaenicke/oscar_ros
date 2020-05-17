@@ -1,6 +1,7 @@
 #include "ros/ros.h"
 #include <signal.h>
 #include "robo_car_if/go_to_point.h"
+#include <visualization_msgs/Marker.h>
 
 /* Tuning parameters */
 #define Kp  (2.5f)
@@ -13,20 +14,26 @@
 static ros::Publisher cmd_pub;
 static robo_car_if::cmd cmd_msg;
 
-std::vector<robo_car_if::Waypoint_T> waypoints;
+
 
 void MySigintHandler(int sig);
+void RobotForceStop(void);
 
 int main(int argc, char **argv) {
-  
   robo_car_if::GoToPointController gtp_controller(TOLERANCE, Kp, GTP_SPEED);
+  std::vector<robo_car_if::Waypoint_T> waypoints;
+  int current_wp = 0;
+  bool dest_reached = false;
+  visualization_msgs::Marker points;
+  geometry_msgs::Point p;
 
   ros::init(argc, argv, "simple_nav");
-
   ros::NodeHandle nh;
-  cmd_pub = nh.advertise<robo_car_if::cmd>("robo_car_cmd", 100);
   ros::Subscriber odom_sub = nh.subscribe("odom", 100, &robo_car_if::GoToPointController::UpdatePose, &gtp_controller);
+  ros::Publisher marker_pub = nh.advertise<visualization_msgs::Marker>("visualization_marker", 10);
   ros::Rate loop_rate(1/EXE_RATE); // (Hz)
+  
+  cmd_pub = nh.advertise<robo_car_if::cmd>("robo_car_cmd", 100);
 
   // Override the default ros sigint handler.
   signal(SIGINT, MySigintHandler);
@@ -35,30 +42,47 @@ int main(int argc, char **argv) {
   waypoints.push_back({1,1});
   waypoints.push_back({1,0});
   waypoints.push_back({0,0});
-  int num_waypoints = waypoints.size();
-  int current_wp = 0;
+
+  points.header.frame_id = "odom";
+  points.header.stamp = ros::Time::now();
+  points.ns = "simple_nav";
+  points.action = visualization_msgs::Marker::ADD;
+  points.pose.orientation.w = 1.0;
+  points.id = 0;
+  points.type = visualization_msgs::Marker::POINTS;
+  points.scale.x = 0.05;
+  points.scale.y = 0.05;
+  points.color.g = 1.0f; // Points are green
+  points.color.a = 1.0;
+
+  for (auto it = waypoints.begin(); it < waypoints.end(); it++) {
+    p.x = it->x;
+    p.y = it->y;
+    p.z = 0.0f;
+    points.points.push_back(p);
+  }
 
   // Set initial destination
   gtp_controller.UpdateDestination(&waypoints[current_wp]);
 
-  while (ros::ok()) {
+  while (ros::ok() && !dest_reached) {
     ros::spinOnce();
 
     if (gtp_controller.InRoute()) {
       gtp_controller.Execute();
       cmd_msg = gtp_controller.GetCmdMsg();
-    } else {
-      /* Waypoint reached; stop */
-      cmd_msg.l_wheel_sp = 0.0;
-      cmd_msg.r_wheel_sp = 0.0;
-      cmd_msg.stop = 1;
-
+    } else { /* Waypoint reached; stop */
+      RobotForceStop();
       /* Do we have another waypoint along the path? */
-      if (++current_wp < num_waypoints) {
+      if (++current_wp < waypoints.size()) {
         gtp_controller.UpdateDestination(&waypoints[current_wp]);
+        ros::Duration(0.2).sleep();
+      } else {
+        dest_reached = true;
       }
     }
-
+    points.header.stamp = ros::Time::now();
+    marker_pub.publish(points);
     cmd_pub.publish(cmd_msg);
     loop_rate.sleep();
   }
@@ -68,15 +92,18 @@ int main(int argc, char **argv) {
 
 void MySigintHandler(int sig)
 {
-  uint8_t i;
+  RobotForceStop();
+  ros::shutdown();
+}
 
+void RobotForceStop(void) {
   cmd_msg.l_wheel_sp = 0.0;
   cmd_msg.r_wheel_sp = 0.0;
   cmd_msg.stop = 1;
 
-  for (i=0; i<3; i++) {
+  /* Send multiple times just to be sure */
+  for (uint8_t i=0; i<5; i++) {
     cmd_pub.publish(cmd_msg);
+    ros::Duration(EXE_RATE).sleep();
   }
-
-  ros::shutdown();
 }
