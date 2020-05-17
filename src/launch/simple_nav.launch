@@ -1,0 +1,4 @@
+<launch>
+  <node pkg="robo_car_if" type="pose_estimation" name="pose_estimation"/>
+  <node pkg="robo_car_if" type="simple_nav" name="simple_nav"/>
+</launch>
