@@ -4,9 +4,9 @@
 #include <visualization_msgs/Marker.h>
 
 /* Tuning parameters */
-#define Kp  (2.5f)
-#define TOLERANCE (0.1)  /* (m) */
-#define GTP_SPEED (0.5) /* (m/s) */
+#define KP_V      (0.4f)    /* linear velocity gain */
+#define KP_H      (3.5f)    /* heading angle gain   */
+#define TOLERANCE (0.05f)   /* (m)                  */
 
 #define EXE_RATE (0.050)
 #define EXES_PER_SEC (1/EXE_RATE)
@@ -14,13 +14,11 @@
 static ros::Publisher cmd_pub;
 static robo_car_if::cmd cmd_msg;
 
-
-
 void MySigintHandler(int sig);
 void RobotForceStop(void);
 
 int main(int argc, char **argv) {
-  robo_car_if::GoToPointController gtp_controller(TOLERANCE, Kp, GTP_SPEED);
+  robo_car_if::GoToPointController gtp_controller(TOLERANCE, KP_V, KP_H);
   std::vector<robo_car_if::Waypoint_T> waypoints;
   int current_wp = 0;
   bool dest_reached = false;
@@ -39,9 +37,11 @@ int main(int argc, char **argv) {
   signal(SIGINT, MySigintHandler);
 
   // Configure the path as a vector of waypoints
-  waypoints.push_back({1,1});
-  waypoints.push_back({1,0});
-  waypoints.push_back({0,0});
+  waypoints.push_back({1.0, 0.0});
+  waypoints.push_back({1.0, -1.0});
+  waypoints.push_back({0.0, -1.0});
+  waypoints.push_back({0.0, 0.0});
+
 
   points.header.frame_id = "odom";
   points.header.stamp = ros::Time::now();
@@ -69,14 +69,13 @@ int main(int argc, char **argv) {
     ros::spinOnce();
 
     if (gtp_controller.InRoute()) {
-      gtp_controller.Execute();
-      cmd_msg = gtp_controller.GetCmdMsg();
+      cmd_msg = gtp_controller.Execute();
     } else { /* Waypoint reached; stop */
       RobotForceStop();
       /* Do we have another waypoint along the path? */
       if (++current_wp < waypoints.size()) {
         gtp_controller.UpdateDestination(&waypoints[current_wp]);
-        ros::Duration(0.2).sleep();
+        ros::Duration(0.1).sleep();
       } else {
         dest_reached = true;
       }

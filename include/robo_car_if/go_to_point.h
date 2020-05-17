@@ -29,21 +29,19 @@ class GoToPointController {
  private:
   Pose_T pose_;
   float tol_;
-  float kp_;
+  float kp_v_;
+  float kp_h_;
   bool in_route_ = false;
   Waypoint_T dest_;
-  float robot_v_;
   robo_car_if::cmd cmd_;
+  float org_dist_to_pnt_;
 
  public:
-  GoToPointController(float tolerance, float gain, float travel_s);
-  void Execute(void);
-  void SetTravelSpeed(float robot_v);
+  GoToPointController(float tolerance, float kp_v, float kp_h);
+  robo_car_if::cmd Execute(void);
   void UpdateDestination(Waypoint_T* dest);
   bool InRoute(void);
-  robo_car_if::cmd GetCmdMsg(void);
   void UpdatePose(const nav_msgs::Odometry::ConstPtr& msg);
-  void GetPose(Pose_T * pose);
 };
 
 } // namespace robo_car_if
