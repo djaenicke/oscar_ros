@@ -71,7 +71,7 @@ world_frame: odom           # Defaults to the value of odom_frame if unspecified
 # default values, and must be specified.
 odom0: /odom
 imu0: /imu_mpu
-imu1: /imu_fxos
+#imu1: /imu_fxos
 
 # Each sensor reading updates some or all of the filter's state. These options give you greater control over which
 # values from each measurement are fed to the filter. For example, if you have an odometry message as input, but only
@@ -90,7 +90,7 @@ imu0_config: [false, false, false,
               false, false, false,
               false, false, false,
               false, false, true,
-              true,  true,  false]
+              false, false, false]
 
 imu1_config: [false, false, false,
               false, false, false,
@@ -130,21 +130,6 @@ imu1_differential: false
 odom0_relative: true
 imu0_relative: true
 imu1_relative: true
-
-# [ADVANCED] If your data is subject to outliers, use these threshold settings, expressed as Mahalanobis distances, to
-# control how far away from the current vehicle state a sensor measurement is permitted to be. Each defaults to
-# numeric_limits<double>::max() if unspecified. It is strongly recommended that these parameters be removed if not
-# required. Data is specified at the level of pose and twist variables, rather than for each variable in isolation.
-# For messages that have both pose and twist data, the parameter specifies to which part of the message we are applying
-# the thresholds.
-odom0_pose_rejection_threshold: 5
-odom0_twist_rejection_threshold: 1
-imu0_pose_rejection_threshold: 0.8                 # Note the difference in parameter names
-imu0_twist_rejection_threshold: 0.8                #
-imu0_linear_acceleration_rejection_threshold: 0.8  #
-imu1_pose_rejection_threshold: 0.8                 # Note the difference in parameter names
-imu1_twist_rejection_threshold: 0.8                #
-imu1_linear_acceleration_rejection_threshold: 0.8  #
 
 # [ADVANCED] Some IMUs automatically remove acceleration due to gravity, and others don't. If yours doesn't, please set
 # this to true, and *make sure* your data conforms to REP-103, specifically, that the data is in ENU frame.
