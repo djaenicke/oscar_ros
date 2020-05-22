@@ -16,6 +16,14 @@
 #define ZY 7
 #define ZZ 8
 
+#define MPU_AX_VARIANCE 0.000191916
+#define MPU_AY_VARIANCE 0.000207292
+
+#define MPU_GZ_VARIANCE 2.95646E-05
+
+#define FXOS_AX_VARIANCE 2.71782E-05
+#define FXOS_AY_VARIANCE 4.62584E-05
+
 void InitEkfMsgs(void);
 void StateMsgUpdateCallBack(const robo_car_if::state::ConstPtr& msg);
 void ComputeOdometry(float r_w_speed, float l_w_speed, double dt);
@@ -95,13 +103,13 @@ void InitEkfMsgs(void) {
     fxos.linear_acceleration_covariance[i] = -1;
   }
 
-  mpu.angular_velocity_covariance[ZZ] = 1e-3;
+  mpu.angular_velocity_covariance[ZZ] = MPU_GZ_VARIANCE;
 
-  mpu.linear_acceleration_covariance[XX] = 1e-5;
-  fxos.linear_acceleration_covariance[XX] = 1e-5;
+  mpu.linear_acceleration_covariance[XX] = MPU_AX_VARIANCE;
+  fxos.linear_acceleration_covariance[XX] = FXOS_AX_VARIANCE;
 
-  mpu.linear_acceleration_covariance[YY] = 1e-5;
-  fxos.linear_acceleration_covariance[YY] = 1e-5;
+  mpu.linear_acceleration_covariance[YY] = MPU_AY_VARIANCE;
+  fxos.linear_acceleration_covariance[YY] = FXOS_AY_VARIANCE;
 }
 
 void StateMsgUpdateCallBack(const robo_car_if::state::ConstPtr& msg) {
