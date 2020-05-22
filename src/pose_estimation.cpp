@@ -36,7 +36,6 @@ static ros::Publisher odom_pub;
 static ros::Publisher footprint_pub;
 static ros::Publisher imu_mpu_pub;
 static ros::Publisher imu_fxos_pub;
-static tf::TransformBroadcaster *odom_broadcaster_ptr;
 
 static geometry_msgs::TransformStamped odom_trans;
 static nav_msgs::Odometry odom;
@@ -62,8 +61,6 @@ int main(int argc, char **argv) {
   imu_mpu_pub = nh.advertise<sensor_msgs::Imu>("imu_mpu", 100);
   imu_fxos_pub = nh.advertise<sensor_msgs::Imu>("imu_fxos", 100);
 
-  odom_broadcaster_ptr = new tf::TransformBroadcaster();
-
   // Configure the robot's footprint as a rectangle for rviz
   robot_footprint.SetPoint(robo_car_if::RR, -0.07, -0.08);
   robot_footprint.SetPoint(robo_car_if::RL, -0.07,  0.08);
@@ -85,9 +82,6 @@ int main(int argc, char **argv) {
 void InitEkfMsgs(void) {
   mpu.header.frame_id = "base_link";
   fxos.header.frame_id = "base_link";
-
-  odom_trans.header.frame_id = "odom";
-  odom_trans.child_frame_id = "base_link";
 
   odom.header.frame_id = "odom";
   odom.child_frame_id = "base_link";
@@ -113,6 +107,7 @@ void InitEkfMsgs(void) {
 }
 
 void StateMsgUpdateCallBack(const robo_car_if::state::ConstPtr& msg) {
+  geometry_msgs::Quaternion fxos_quat;
   double dt;
 
   // Compute time between state messages
@@ -135,6 +130,10 @@ void StateMsgUpdateCallBack(const robo_car_if::state::ConstPtr& msg) {
   fxos.linear_acceleration.x = msg->fxos_ax;
   fxos.linear_acceleration.y = msg->fxos_ay;
   fxos.linear_acceleration.z = msg->fxos_az;
+
+  // FIX ME
+  //fxos.orientation = tf::createQuaternionMsgFromYaw(atan2(msg->fxos_my, msg->fxos_mx));
+
   imu_fxos_pub.publish(fxos);
 }
 
@@ -155,17 +154,6 @@ void ComputeOdometry(float l_w_speed, float r_w_speed, double dt) {
 
   // Since all odometry is 6DOF we'll need a quaternion created from yaw
   odom_quat = tf::createQuaternionMsgFromYaw(th);
-
-  // First, we'll publish the transform over tf
-  odom_trans.header.stamp = current_time;
-
-  odom_trans.transform.translation.x = x;
-  odom_trans.transform.translation.y = y;
-  odom_trans.transform.translation.z = 0.0;
-  odom_trans.transform.rotation = odom_quat;
-
-  // Send the transform
-  odom_broadcaster_ptr->sendTransform(odom_trans);
 
   odom.header.stamp = current_time;
 
