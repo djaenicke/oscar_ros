@@ -37,7 +37,6 @@ static ros::Publisher footprint_pub;
 static ros::Publisher imu_mpu_pub;
 static ros::Publisher imu_fxos_pub;
 
-static geometry_msgs::TransformStamped odom_trans;
 static nav_msgs::Odometry odom;
 static sensor_msgs::Imu mpu;
 static sensor_msgs::Imu fxos;
@@ -96,8 +95,11 @@ void InitEkfMsgs(void) {
 }
 
 void StateMsgUpdateCallBack(const robo_car_if::state::ConstPtr& msg) {
+  static double zero_yaw;
+  static bool init = false;
+  double yaw, dt;
+
   geometry_msgs::Quaternion fxos_quat;
-  double dt;
 
   // Compute time between state messages
   current_time = ros::Time::now();
@@ -120,10 +122,15 @@ void StateMsgUpdateCallBack(const robo_car_if::state::ConstPtr& msg) {
   fxos.linear_acceleration.y = msg->fxos_ay;
   fxos.linear_acceleration.z = msg->fxos_az;
 
-  // FIX ME
-  //fxos.orientation = tf::createQuaternionMsgFromYaw(atan2(msg->fxos_my, msg->fxos_mx));
-
   imu_fxos_pub.publish(fxos);
+
+  if (!init) {
+    zero_yaw = atan2(msg->fxos_mx, msg->fxos_my);
+    init = true;
+  }
+
+  yaw = atan2(msg->fxos_mx, msg->fxos_my) - zero_yaw;
+  fxos.orientation = tf::createQuaternionMsgFromYaw(yaw);
 }
 
 void ComputeOdometry(float l_w_speed, float r_w_speed, double dt) {

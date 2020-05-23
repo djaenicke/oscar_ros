@@ -1,5 +1,4 @@
 <launch>
-  <include file="$(find robo_car_if)/src/launch/ekf.launch"/>
-  <node pkg="robo_car_if" type="pose_estimation" name="pose_estimation"/>
+  <include file="$(find robo_car_if)/src/launch/localization.launch"/>
   <node pkg="robo_car_if" type="simple_nav" name="simple_nav"/>
 </launch>
