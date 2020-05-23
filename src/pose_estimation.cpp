@@ -86,17 +86,6 @@ void InitEkfMsgs(void) {
   odom.header.frame_id = "odom";
   odom.child_frame_id = "base_link";
 
-  for (uint8_t i = 0; i < ZZ; i++) {
-    mpu.orientation_covariance[i] = -1;
-    fxos.orientation_covariance[i] = -1;
-
-    mpu.angular_velocity_covariance[i] = -1;
-    fxos.angular_velocity_covariance[i] = -1;
-
-    mpu.linear_acceleration_covariance[i] = -1;
-    fxos.linear_acceleration_covariance[i] = -1;
-  }
-
   mpu.angular_velocity_covariance[ZZ] = MPU_GZ_VARIANCE;
 
   mpu.linear_acceleration_covariance[XX] = MPU_AX_VARIANCE;
