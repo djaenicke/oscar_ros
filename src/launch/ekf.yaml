@@ -71,7 +71,7 @@ world_frame: odom           # Defaults to the value of odom_frame if unspecified
 # default values, and must be specified.
 odom0: /odom
 imu0: /imu_mpu
-#imu1: /imu_fxos
+# TODO imu1: /imu_fxos
 
 # Each sensor reading updates some or all of the filter's state. These options give you greater control over which
 # values from each measurement are fed to the filter. For example, if you have an odometry message as input, but only
@@ -96,7 +96,7 @@ imu1_config: [false, false, false,
               false, false, false,
               false, false, false,
               false, false, false,
-              true,  true,  false]
+              false, false, false]
 
 # If you have high-frequency data or are running with a low frequency parameter value, then you may want to increase
 # the size of the subscription queue so that more measurements are fused.
