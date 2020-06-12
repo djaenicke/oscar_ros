@@ -7,9 +7,9 @@
 /* Tuning parameters */
 #define KP_V      (0.4f)    /* linear velocity P gain */
 #define FF_V      (0.25f)   /* linear velocity feedforward term */
-#define KP_H      (3.9f)    /* heading angle P gain   */
-#define KI_H      (0.5f)    /* heading angle I gain   */
-#define KD_H      (0.05f)   /* heading angle D gain   */
+#define KP_H      (4.5f)    /* heading angle P gain   */
+#define KI_H      (0.0f)    /* heading angle I gain   */
+#define KD_H      (0.0f)    /* heading angle D gain   */
 #define D_TOL     (0.05f)   /* Distance to goal tolerance (m) */
 
 #define EXE_RATE (0.050)
@@ -28,9 +28,9 @@ int main(int argc, char **argv) {
   heading_ctrl_params.kp  = KP_H;
   heading_ctrl_params.ki  = KI_H;
   heading_ctrl_params.kd  = KD_H;
-  heading_ctrl_params.max = MAX_ABS_YAW_RATE;
-  heading_ctrl_params.min = 0.00f;
-  heading_ctrl_params.tol = 0.00f;
+  heading_ctrl_params.max = MAX_ABS_YAW_RATE / 4; // Limit max rotational speed
+  heading_ctrl_params.min = 0.0f;
+  heading_ctrl_params.tol = 0.0f;
 
   robo_car_if::GoToPointController gtp_controller(D_TOL, KP_V, FF_V, &heading_ctrl_params);
   std::vector<robo_car_if::Waypoint_T> waypoints;
@@ -51,13 +51,10 @@ int main(int argc, char **argv) {
   signal(SIGINT, MySigintHandler);
 
   // Configure the path as a vector of waypoints
-  waypoints.push_back({0.0, -1.0});
-  
-  /*waypoints.push_back({1.0, 0.0});
+  waypoints.push_back({1.0, 0.0});
   waypoints.push_back({1.0, -1.0});
   waypoints.push_back({0.0, -1.0});
-  waypoints.push_back({0.0, 0.0});*/
-
+  waypoints.push_back({0.0, 0.0});
 
   points.header.frame_id = "odom";
   points.header.stamp = ros::Time::now();

@@ -50,13 +50,13 @@ robo_car_if::cmd GoToPointController::Execute(void) {
     omega = heading_pid.Step(theta_e, heading_pid_params.max, heading_pid_params.min);
     robot_v = 0;
 
-    if (fabs(omega) < 0.2f) {
-      cnt_++;
+    if (fabs(omega) < 0.4f) {
+      delay_cnt_++;
     } else {
-      cnt_ = 0;
+      delay_cnt_ = 0;
     }
 
-    if (cnt_ >= 20) {
+    if (delay_cnt_ >= 5 && theta_e < 0.1) {
       aligned_ = true;
     }
   }
@@ -91,7 +91,7 @@ void GoToPointController::UpdateDestination(Waypoint_T* dest) {
   org_dist_to_pnt_ = sqrt(pow(dest_.x - pose_.x, 2) + pow(dest_.y - pose_.y, 2));
   in_route_ = true;
   aligned_ = false;
-  cnt_ = 0;
+  delay_cnt_ = 0;
   heading_pid.Reset();
 }
 

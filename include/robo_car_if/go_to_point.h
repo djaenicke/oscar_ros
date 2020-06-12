@@ -34,7 +34,7 @@ class GoToPointController {
   float ff_v_;
   bool in_route_ = false;
   bool aligned_ = false;
-  uint8_t cnt_;
+  uint8_t delay_cnt_;
   Waypoint_T dest_;
   robo_car_if::cmd cmd_;
   float org_dist_to_pnt_;
