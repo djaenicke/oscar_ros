@@ -123,6 +123,7 @@ include_directories(
 
 ## Declare a C++ library
 add_library(go_to_point src/go_to_point.cpp)
+add_library(pid src/pid.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -149,7 +150,7 @@ add_executable(simple_nav src/simple_nav.cpp)
 ## Specify libraries to link a library or executable target against
 target_link_libraries(teleop ${catkin_LIBRARIES})
 target_link_libraries(pose_estimation ${catkin_LIBRARIES})
-target_link_libraries(simple_nav go_to_point ${catkin_LIBRARIES})
+target_link_libraries(simple_nav go_to_point pid ${catkin_LIBRARIES})
 
 #############
 ## Install ##
