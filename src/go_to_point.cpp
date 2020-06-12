@@ -13,15 +13,15 @@
 /* https://pdfs.semanticscholar.org/edde/fa921e26efbbfd6c65ad1e13af0bbbc1b946.pdf */
 namespace robo_car_if {
 
-GoToPointController::GoToPointController(float d_tol, float kp_v,
-                                         float ff_v, pid::Params_T* heading_ctrl_params) :
-  heading_pid(heading_ctrl_params) {
-  memcpy(&heading_pid_params, heading_ctrl_params, sizeof(pid::Params_T));
-  tol_  = d_tol;
-  kp_v_ = kp_v;
-  ff_v_ = ff_v;
+GoToPointController::GoToPointController(GTP_Cfg_T* cfg) {
+  d_tol_ = cfg->d_tol;
+  h_tol_ = cfg->h_tol;
+  kp_v_  = cfg->kp_v;
+  ff_v_  = cfg->ff_v;
+  kp_h_  = cfg->kp_h;
+  min_h_dot_ = cfg->min_h_dot;
+  max_h_dot_ = cfg->max_h_dot;
   in_route_ = false;
-
   pose_.x = 0;
   pose_.y = 0;
   pose_.theta = 0;
@@ -34,6 +34,7 @@ robo_car_if::cmd GoToPointController::Execute(void) {
   float omega;
   float sp;
   float d;
+  int8_t sign;
 
   /* Compute the desired heading */
   sp = atan2f(dest_.y - pose_.y, dest_.x - pose_.x);
@@ -44,34 +45,39 @@ robo_car_if::cmd GoToPointController::Execute(void) {
   /* Heading difference and error */
   theta_d = sp - pose_.theta; 
   theta_e = atan2f(sinf(theta_d), cosf(theta_d));
+  omega = kp_h_ * theta_e;
 
-  /* Rotate in place to first align the heading angle */
+  /* Determine the sign of omega */
+  sign = signbit(omega) ? -1 : 1;
+
+  /* Align heading angle before translating */
   if (!aligned_) {
-    omega = heading_pid.Step(theta_e, heading_pid_params.max, heading_pid_params.min);
     robot_v = 0;
 
-    if (fabs(omega) < 0.4f) {
+    /* Saturate the yaw rate */
+    if (fabs(omega) > max_h_dot_) {
+      omega = sign * max_h_dot_;
+    }
+
+    if (fabs(omega) < min_h_dot_) {
       delay_cnt_++;
     } else {
       delay_cnt_ = 0;
     }
 
-    if (delay_cnt_ >= 5 && theta_e < 0.1) {
+    if (delay_cnt_ >= 5 && theta_e < h_tol_) {
       aligned_ = true;
     }
   }
 
   if (aligned_) {
-    /* Run basic proportional control */
-    omega = heading_pid_params.kp * theta_e;
-  
     /* Compute the linear velocity */
     /* The distance to the point is normalized to ensure the max possible
       speed is simply kp_v_ + feedforward velocity */ 
     robot_v = (kp_v_ * d / org_dist_to_pnt_) + ff_v_;
   }
 
-  if (d > tol_) {
+  if (d > d_tol_) {
     /* Determine the required linear velocities */
     vr = robot_v + (omega * (WHEEL_BASE / 2));
     vl = robot_v - (omega * (WHEEL_BASE / 2));
@@ -89,10 +95,9 @@ void GoToPointController::UpdateDestination(Waypoint_T* dest) {
   dest_.x = dest->x;
   dest_.y = dest->y;
   org_dist_to_pnt_ = sqrt(pow(dest_.x - pose_.x, 2) + pow(dest_.y - pose_.y, 2));
-  in_route_ = true;
-  aligned_ = false;
+  in_route_  = true;
+  aligned_   = false;
   delay_cnt_ = 0;
-  heading_pid.Reset();
 }
 
 bool GoToPointController::InRoute(void){
