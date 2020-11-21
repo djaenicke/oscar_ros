@@ -6,35 +6,44 @@
 #include <geometry_msgs/Point32.h>
 #include <geometry_msgs/PolygonStamped.h>
 
-namespace robo_car_if {
-typedef enum {
+namespace robo_car_if
+{
+typedef enum
+{
   RR = 0,
   RL,
   FL,
   FR,
   NUM_POINTS
-} Point_Loc_T;
+} Point_Loc_T;  // NOLINT(whitespace/braces)
 
-class Footprint {
+class Footprint
+{
  private:
   geometry_msgs::PolygonStamped polygon_msg_;
   geometry_msgs::Point32 point_;
 
  public:
-  Footprint() {
+  Footprint()
+  {
     polygon_msg_.header.frame_id = "base_link";
     polygon_msg_.polygon.points.reserve(NUM_POINTS);
     point_.x = 0.0f;
     point_.y = 0.0f;
     point_.z = 0.0f;
-    for (uint8_t i = 0; i < NUM_POINTS; i++) {
+
+    for (uint8_t i = 0; i < NUM_POINTS; i++)
+    {
       polygon_msg_.polygon.points.push_back(point_);
     }
   }
 
-  void SetPoint(Point_Loc_T loc, float x, float y) {
+  void SetPoint(Point_Loc_T loc, float x, float y)
+  {
     geometry_msgs::Point32 point;
-    switch (loc) {
+
+    switch (loc)
+    {
       case RR:
       case RL:
       case FL:
@@ -47,11 +56,12 @@ class Footprint {
     }
   }
 
-  geometry_msgs::PolygonStamped GetPolyStampedMsg(void) {
+  geometry_msgs::PolygonStamped GetPolyStampedMsg(void)
+  {
     return polygon_msg_;
   }
 };
 
-} // namespace robo_car_if
+}  // namespace robo_car_if
 
 #endif  // ROBO_CAR_IF_FOOTPRINT_H

@@ -4,13 +4,14 @@
 #include <termios.h>
 #include <stdio.h>
 
-#define KEYCODE_R 0x43 
+#define KEYCODE_R 0x43
 #define KEYCODE_L 0x44
 #define KEYCODE_F 0x41
 #define KEYCODE_B 0x42
 #define KEYCODE_S 0x73
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   char c;
   bool dirty = false;
   int kfd = 0;
@@ -27,6 +28,7 @@ int main(int argc, char **argv) {
   tcgetattr(kfd, &cooked);
   memcpy(&raw, &cooked, sizeof(struct termios));
   raw.c_lflag &= ~(ICANON | ECHO);
+
   // Setting a new line, then end of file
   raw.c_cc[VEOL] = 1;
   raw.c_cc[VEOF] = 2;
@@ -36,13 +38,16 @@ int main(int argc, char **argv) {
   puts("---------------------------");
   puts("Use arrow keys to move the robot.");
 
-  while (ros::ok()) {
+  while (ros::ok())
+  {
     // get the next event from the keyboard
-    if (read(kfd, &c, 1) < 0) {
+    if (read(kfd, &c, 1) < 0)
+    {
       perror("read():");
       exit(-1);
     }
-    switch (c) {
+    switch (c)
+    {
       case KEYCODE_F:
         puts("FORWARD");
         cmd_msg.r_wheel_sp = 15.0;
@@ -80,7 +85,8 @@ int main(int argc, char **argv) {
         break;
     }
 
-    if (dirty == true) {
+    if (dirty == true)
+    {
       cmd_pub.publish(cmd_msg);
       dirty = false;
     }

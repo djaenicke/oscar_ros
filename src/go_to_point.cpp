@@ -9,11 +9,13 @@
 #include "robo_car_if/cals.h"
 #include <tf/LinearMath/Matrix3x3.h>
 
-/* Controller Design */
-/* https://pdfs.semanticscholar.org/edde/fa921e26efbbfd6c65ad1e13af0bbbc1b946.pdf */
-namespace robo_car_if {
+/* Controller Design
+   https://pdfs.semanticscholar.org/edde/fa921e26efbbfd6c65ad1e13af0bbbc1b946.pdf */
+namespace robo_car_if
+{
 
-GoToPointController::GoToPointController(GTP_Cfg_T* cfg) {
+GoToPointController::GoToPointController(GTP_Cfg_T* cfg)
+{
   d_tol_ = cfg->d_tol;
   h_tol_ = cfg->h_tol;
   kp_v_  = cfg->kp_v;
@@ -27,10 +29,11 @@ GoToPointController::GoToPointController(GTP_Cfg_T* cfg) {
   pose_.theta = 0;
 }
 
-robo_car_if::cmd GoToPointController::Execute(void) {
-  float vr, vl;           /* Desired linear wheel velocities */
-  float robot_v;          /* Robot linear velocity */
-  float theta_d, theta_e; /* Heading difference and heading error */
+robo_car_if::cmd GoToPointController::Execute(void)
+{
+  float vr, vl;            /* Desired linear wheel velocities */
+  float robot_v;           /* Robot linear velocity */
+  float theta_d, theta_e;  /* Heading difference and heading error */
   float omega;
   float sp;
   float d;
@@ -43,7 +46,7 @@ robo_car_if::cmd GoToPointController::Execute(void) {
   d = sqrt(pow(dest_.x - pose_.x, 2) + pow(dest_.y - pose_.y, 2));
 
   /* Heading difference and error */
-  theta_d = sp - pose_.theta; 
+  theta_d = sp - pose_.theta;
   theta_e = atan2f(sinf(theta_d), cosf(theta_d));
   omega = kp_h_ * theta_e;
 
@@ -51,47 +54,58 @@ robo_car_if::cmd GoToPointController::Execute(void) {
   sign = signbit(omega) ? -1 : 1;
 
   /* Align heading angle before translating */
-  if (!aligned_) {
+  if (!aligned_)
+  {
     robot_v = 0;
 
     /* Saturate the yaw rate */
-    if (fabs(omega) > max_h_dot_) {
+    if (fabs(omega) > max_h_dot_)
+    {
       omega = sign * max_h_dot_;
     }
 
-    if (fabs(omega) < min_h_dot_) {
+    if (fabs(omega) < min_h_dot_)
+    {
       delay_cnt_++;
-    } else {
+    }
+    else
+    {
       delay_cnt_ = 0;
     }
 
-    if (delay_cnt_ >= 5 && theta_e < h_tol_) {
+    if (delay_cnt_ >= 5 && theta_e < h_tol_)
+    {
       aligned_ = true;
     }
   }
 
-  if (aligned_) {
+  if (aligned_)
+  {
     /* Compute the linear velocity */
     /* The distance to the point is normalized to ensure the max possible
       speed is simply kp_v_ + feedforward velocity */ 
     robot_v = (kp_v_ * d / org_dist_to_pnt_) + ff_v_;
   }
 
-  if (d > d_tol_) {
+  if (d > d_tol_)
+  {
     /* Determine the required linear velocities */
     vr = robot_v + (omega * (WHEEL_BASE / 2));
     vl = robot_v - (omega * (WHEEL_BASE / 2));
 
     cmd_.r_wheel_sp = vr / WHEEL_RADIUS;
     cmd_.l_wheel_sp = vl / WHEEL_RADIUS;
-  } else {
+  }
+  else
+  {
     in_route_ = false;
   }
 
   return cmd_;
 }
 
-void GoToPointController::UpdateDestination(Waypoint_T* dest) {
+void GoToPointController::UpdateDestination(Waypoint_T* dest)
+{
   dest_.x = dest->x;
   dest_.y = dest->y;
   org_dist_to_pnt_ = sqrt(pow(dest_.x - pose_.x, 2) + pow(dest_.y - pose_.y, 2));
@@ -100,11 +114,13 @@ void GoToPointController::UpdateDestination(Waypoint_T* dest) {
   delay_cnt_ = 0;
 }
 
-bool GoToPointController::InRoute(void){
+bool GoToPointController::InRoute(void)
+{
   return (in_route_);
 }
 
-void GoToPointController::UpdatePose(const nav_msgs::Odometry::ConstPtr& msg) {
+void GoToPointController::UpdatePose(const nav_msgs::Odometry::ConstPtr& msg)
+{
   pose_.x = msg->pose.pose.position.x;
   pose_.y = msg->pose.pose.position.y;
 
@@ -116,4 +132,4 @@ void GoToPointController::UpdatePose(const nav_msgs::Odometry::ConstPtr& msg) {
   pose_.theta = yaw;
 }
 
-} // namespace robo_car_if
+}  // namespace robo_car_if
