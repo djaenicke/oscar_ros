@@ -1,5 +1,5 @@
 #include "ros/ros.h"
-#include "robo_car_if/cmd.h"
+#include "robo_car_ros_if/cmd.h"
 #include <signal.h>
 #include <termios.h>
 #include <stdio.h>
@@ -17,12 +17,12 @@ int main(int argc, char **argv)
   int kfd = 0;
   struct termios cooked, raw;
 
-  robo_car_if::cmd cmd_msg;
+  robo_car_ros_if::cmd cmd_msg;
 
   ros::init(argc, argv, "teleop");
 
   ros::NodeHandle nh;
-  ros::Publisher cmd_pub = nh.advertise<robo_car_if::cmd>("robo_car_cmd", 100);
+  ros::Publisher cmd_pub = nh.advertise<robo_car_ros_if::cmd>("robo_car_cmd", 100);
 
   // get the console in raw mode
   tcgetattr(kfd, &cooked);

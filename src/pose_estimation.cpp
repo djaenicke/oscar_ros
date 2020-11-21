@@ -1,7 +1,7 @@
 #include "ros/ros.h"
-#include "robo_car_if/state.h"
-#include "robo_car_if/footprint.h"
-#include "robo_car_if/cals.h"
+#include "robo_car_ros_if/state.h"
+#include "robo_car_ros_if/footprint.h"
+#include "robo_car_ros_if/cals.h"
 #include <tf/transform_broadcaster.h>
 #include <nav_msgs/Odometry.h>
 #include <sensor_msgs/Imu.h>
@@ -25,10 +25,10 @@
 #define FXOS_AY_VARIANCE 4.62584E-05
 
 void InitEkfMsgs(void);
-void StateMsgUpdateCallBack(const robo_car_if::state::ConstPtr& msg);
+void StateMsgUpdateCallBack(const robo_car_ros_if::state::ConstPtr& msg);
 void ComputeOdometry(float r_w_speed, float l_w_speed, double dt);
 
-static robo_car_if::Footprint robot_footprint;
+static robo_car_ros_if::Footprint robot_footprint;
 
 // Pubs and Subs
 static ros::Subscriber state_sub;
@@ -62,10 +62,10 @@ int main(int argc, char **argv)
   imu_fxos_pub = nh.advertise<sensor_msgs::Imu>("imu_fxos", 100);
 
   // Configure the robot's footprint as a rectangle for rviz
-  robot_footprint.SetPoint(robo_car_if::RR, -0.07, -0.08);
-  robot_footprint.SetPoint(robo_car_if::RL, -0.07,  0.08);
-  robot_footprint.SetPoint(robo_car_if::FL,  0.15,  0.08);
-  robot_footprint.SetPoint(robo_car_if::FR,  0.15, -0.08);
+  robot_footprint.SetPoint(robo_car_ros_if::RR, -0.07, -0.08);
+  robot_footprint.SetPoint(robo_car_ros_if::RL, -0.07,  0.08);
+  robot_footprint.SetPoint(robo_car_ros_if::FL,  0.15,  0.08);
+  robot_footprint.SetPoint(robo_car_ros_if::FR,  0.15, -0.08);
 
   // Process incoming state messages at 2 times the update rate
   ros::Rate loop_rate(1/(EMBEDDED_UPDATE_RATE/2));  // (Hz)
@@ -97,7 +97,7 @@ void InitEkfMsgs(void)
   fxos.linear_acceleration_covariance[YY] = FXOS_AY_VARIANCE;
 }
 
-void StateMsgUpdateCallBack(const robo_car_if::state::ConstPtr& msg)
+void StateMsgUpdateCallBack(const robo_car_ros_if::state::ConstPtr& msg)
 {
   static double zero_yaw;
   static bool init = false;

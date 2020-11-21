@@ -1,8 +1,8 @@
 #include "ros/ros.h"
 #include <signal.h>
 #include <vector>
-#include "robo_car_if/cals.h"
-#include "robo_car_if/go_to_point.h"
+#include "robo_car_ros_if/cals.h"
+#include "robo_car_ros_if/go_to_point.h"
 #include <visualization_msgs/Marker.h>
 
 /* Tuning parameters */
@@ -18,14 +18,14 @@
 #define EXES_PER_SEC (1/EXE_RATE)
 
 static ros::Publisher cmd_pub;
-static robo_car_if::cmd cmd_msg;
+static robo_car_ros_if::cmd cmd_msg;
 
 void MySigintHandler(int sig);
 void RobotForceStop(void);
 
 int main(int argc, char **argv)
 {
-  robo_car_if::GTP_Cfg_T gtp_cfg;
+  robo_car_ros_if::GTP_Cfg_T gtp_cfg;
 
   gtp_cfg.d_tol = D_TOL;
   gtp_cfg.h_tol = H_TOL;
@@ -35,8 +35,8 @@ int main(int argc, char **argv)
   gtp_cfg.max_h_dot = MAX_ABS_YAW_RATE / 4;  // Limit max rotational speed
   gtp_cfg.min_h_dot = 0.4;  // (rad/s)
 
-  robo_car_if::GoToPointController gtp_controller(&gtp_cfg);
-  std::vector<robo_car_if::Waypoint_T> waypoints;
+  robo_car_ros_if::GoToPointController gtp_controller(&gtp_cfg);
+  std::vector<robo_car_ros_if::Waypoint_T> waypoints;
   int current_wp = 0;
   bool dest_reached = false;
   visualization_msgs::Marker points;
@@ -45,11 +45,11 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "simple_nav");
   ros::NodeHandle nh;
   ros::Subscriber odom_sub = nh.subscribe("odometry/filtered", 100,
-                                          &robo_car_if::GoToPointController::UpdatePose, &gtp_controller);
+                                          &robo_car_ros_if::GoToPointController::UpdatePose, &gtp_controller);
   ros::Publisher marker_pub = nh.advertise<visualization_msgs::Marker>("visualization_marker", 10);
   ros::Rate loop_rate(1/EXE_RATE);  // (Hz)
 
-  cmd_pub = nh.advertise<robo_car_if::cmd>("robo_car_cmd", 100);
+  cmd_pub = nh.advertise<robo_car_ros_if::cmd>("robo_car_cmd", 100);
 
   // Override the default ros sigint handler.
   signal(SIGINT, MySigintHandler);

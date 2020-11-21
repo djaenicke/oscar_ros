@@ -1,12 +1,12 @@
-#ifndef ROBO_CAR_IF_FOOTPRINT_H
-#define ROBO_CAR_IF_FOOTPRINT_H
+#ifndef ROBO_CAR_ROS_IF_FOOTPRINT_H
+#define ROBO_CAR_ROS_IF_FOOTPRINT_H
 
 #include "ros/ros.h"
 #include <ros/console.h>
 #include <geometry_msgs/Point32.h>
 #include <geometry_msgs/PolygonStamped.h>
 
-namespace robo_car_if
+namespace robo_car_ros_if
 {
 typedef enum
 {
@@ -62,6 +62,6 @@ class Footprint
   }
 };
 
-}  // namespace robo_car_if
+}  // namespace robo_car_ros_if
 
-#endif  // ROBO_CAR_IF_FOOTPRINT_H
+#endif  // ROBO_CAR_ROS_IF_FOOTPRINT_H

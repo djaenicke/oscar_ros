@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>robo_car_if</name>
+  <name>robo_car_ros_if</name>
   <version>0.1.0</version>
-  <description>The robo_car_if package</description>
+  <description>The robo_car_ros_if package</description>
 
   <maintainer email="djaenicke.92@gmail.com">Devin K. Jaenicke</maintainer>
   <license>MIT</license>

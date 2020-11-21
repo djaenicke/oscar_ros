@@ -5,13 +5,13 @@
  *      Author: Devin
  */
 
-#include "robo_car_if/go_to_point.h"
-#include "robo_car_if/cals.h"
+#include "robo_car_ros_if/go_to_point.h"
+#include "robo_car_ros_if/cals.h"
 #include <tf/LinearMath/Matrix3x3.h>
 
 /* Controller Design
    https://pdfs.semanticscholar.org/edde/fa921e26efbbfd6c65ad1e13af0bbbc1b946.pdf */
-namespace robo_car_if
+namespace robo_car_ros_if
 {
 
 GoToPointController::GoToPointController(GTP_Cfg_T* cfg)
@@ -29,7 +29,7 @@ GoToPointController::GoToPointController(GTP_Cfg_T* cfg)
   pose_.theta = 0;
 }
 
-robo_car_if::cmd GoToPointController::Execute(void)
+robo_car_ros_if::cmd GoToPointController::Execute(void)
 {
   float vr, vl;            /* Desired linear wheel velocities */
   float robot_v;           /* Robot linear velocity */
@@ -132,4 +132,4 @@ void GoToPointController::UpdatePose(const nav_msgs::Odometry::ConstPtr& msg)
   pose_.theta = yaw;
 }
 
-}  // namespace robo_car_if
+}  // namespace robo_car_ros_if
