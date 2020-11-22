@@ -1,4 +1,4 @@
 <launch>
-  <include file="$(find robo_car_if)/src/launch/localization.launch"/>
-  <node pkg="robo_car_if" type="simple_nav" name="simple_nav"/>
+  <include file="$(find robo_car_ros_if)/src/launch/localization.launch"/>
+  <node pkg="robo_car_ros_if" type="simple_nav" name="simple_nav"/>
 </launch>

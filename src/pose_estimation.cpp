@@ -1,7 +1,7 @@
 #include "ros/ros.h"
-#include "robo_car_if/state.h"
-#include "robo_car_if/footprint.h"
-#include "robo_car_if/cals.h"
+#include "robo_car_ros_if/state.h"
+#include "robo_car_ros_if/footprint.h"
+#include "robo_car_ros_if/cals.h"
 #include <tf/transform_broadcaster.h>
 #include <nav_msgs/Odometry.h>
 #include <sensor_msgs/Imu.h>
@@ -25,10 +25,10 @@
 #define FXOS_AY_VARIANCE 4.62584E-05
 
 void InitEkfMsgs(void);
-void StateMsgUpdateCallBack(const robo_car_if::state::ConstPtr& msg);
+void StateMsgUpdateCallBack(const robo_car_ros_if::state::ConstPtr& msg);
 void ComputeOdometry(float r_w_speed, float l_w_speed, double dt);
 
-static robo_car_if::Footprint robot_footprint;
+static robo_car_ros_if::Footprint robot_footprint;
 
 // Pubs and Subs
 static ros::Subscriber state_sub;
@@ -46,7 +46,8 @@ static double x  = 0;
 static double y  = 0;
 static double th = 0;
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
   ros::init(argc, argv, "pose_estimation");
   ros::NodeHandle nh;
 
@@ -54,31 +55,33 @@ int main(int argc, char **argv) {
   last_time = ros::Time::now();
 
   state_sub = nh.subscribe("robo_car_state", 100, StateMsgUpdateCallBack);
-  
+
   odom_pub = nh.advertise<nav_msgs::Odometry>("odom", 100);
   footprint_pub = nh.advertise<geometry_msgs::PolygonStamped>("robot_footprint", 100);
   imu_mpu_pub = nh.advertise<sensor_msgs::Imu>("imu_mpu", 100);
   imu_fxos_pub = nh.advertise<sensor_msgs::Imu>("imu_fxos", 100);
 
   // Configure the robot's footprint as a rectangle for rviz
-  robot_footprint.SetPoint(robo_car_if::RR, -0.07, -0.08);
-  robot_footprint.SetPoint(robo_car_if::RL, -0.07,  0.08);
-  robot_footprint.SetPoint(robo_car_if::FL,  0.15,  0.08);
-  robot_footprint.SetPoint(robo_car_if::FR,  0.15, -0.08);
+  robot_footprint.SetPoint(robo_car_ros_if::RR, -0.07, -0.08);
+  robot_footprint.SetPoint(robo_car_ros_if::RL, -0.07,  0.08);
+  robot_footprint.SetPoint(robo_car_ros_if::FL,  0.15,  0.08);
+  robot_footprint.SetPoint(robo_car_ros_if::FR,  0.15, -0.08);
 
   // Process incoming state messages at 2 times the update rate
-  ros::Rate loop_rate(1/(EMBEDDED_UPDATE_RATE/2)); // (Hz)
+  ros::Rate loop_rate(1/(EMBEDDED_UPDATE_RATE/2));  // (Hz)
 
   InitEkfMsgs();
 
-  while (ros::ok()) {
+  while (ros::ok())
+  {
     ros::spinOnce();
     footprint_pub.publish(robot_footprint.GetPolyStampedMsg());
     loop_rate.sleep();
   }
 }
 
-void InitEkfMsgs(void) {
+void InitEkfMsgs(void)
+{
   mpu.header.frame_id = "base_link";
   fxos.header.frame_id = "base_link";
 
@@ -94,7 +97,8 @@ void InitEkfMsgs(void) {
   fxos.linear_acceleration_covariance[YY] = FXOS_AY_VARIANCE;
 }
 
-void StateMsgUpdateCallBack(const robo_car_if::state::ConstPtr& msg) {
+void StateMsgUpdateCallBack(const robo_car_ros_if::state::ConstPtr& msg)
+{
   static double zero_yaw;
   static bool init = false;
   double yaw, dt;
@@ -124,7 +128,8 @@ void StateMsgUpdateCallBack(const robo_car_if::state::ConstPtr& msg) {
 
   imu_fxos_pub.publish(fxos);
 
-  if (!init) {
+  if (!init)
+  {
     zero_yaw = atan2(msg->fxos_mx, msg->fxos_my);
     init = true;
   }
@@ -133,13 +138,14 @@ void StateMsgUpdateCallBack(const robo_car_if::state::ConstPtr& msg) {
   fxos.orientation = tf::createQuaternionMsgFromYaw(yaw);
 }
 
-void ComputeOdometry(float l_w_speed, float r_w_speed, double dt) {
+void ComputeOdometry(float l_w_speed, float r_w_speed, double dt)
+{
   geometry_msgs::Quaternion odom_quat;
 
-  double vr = r_w_speed * WHEEL_RADIUS; // Right wheel translational velocity
-  double vl = l_w_speed * WHEEL_RADIUS; // Right wheel translational velocity
-  double yaw_rate = (vr - vl) / WHEEL_BASE; // Robot angular velocity
-  double v = (vr + vl) / 2; // Robot translational velocity
+  double vr = r_w_speed * WHEEL_RADIUS;  // Right wheel translational velocity
+  double vl = l_w_speed * WHEEL_RADIUS;  // Right wheel translational velocity
+  double yaw_rate = (vr - vl) / WHEEL_BASE;  // Robot angular velocity
+  double v = (vr + vl) / 2;  // Robot translational velocity
   double delta_x = (v * cos(th)) * dt;
   double delta_y = (v * sin(th)) * dt;
   double delta_th = yaw_rate * dt;

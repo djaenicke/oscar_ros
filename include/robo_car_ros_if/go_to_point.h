@@ -5,27 +5,31 @@
  *      Author: Devin
  */
 
-#ifndef ROBO_CAR_IF_GO_TO_POINT_H_
-#define ROBO_CAR_IF_GO_TO_POINT_H_
+#ifndef ROBO_CAR_ROS_IF_GO_TO_POINT_H_
+#define ROBO_CAR_ROS_IF_GO_TO_POINT_H_
 
 #include "ros/ros.h"
-#include "robo_car_if/cmd.h"
+#include "robo_car_ros_if/cmd.h"
 #include <nav_msgs/Odometry.h>
 
-namespace robo_car_if {
+namespace robo_car_ros_if
+{
 
-typedef struct {
+typedef struct
+{
   float x;
   float y;
-} Waypoint_T;
+} Waypoint_T;  // NOLINT(whitespace/braces)
 
-typedef struct {
+typedef struct
+{
   float x;
   float y;
   float theta;
-} Pose_T;
+} Pose_T;  // NOLINT(whitespace/braces)
 
-typedef struct {
+typedef struct
+{
   float d_tol;
   float h_tol;
   float kp_v;
@@ -33,9 +37,10 @@ typedef struct {
   float kp_h;
   float max_h_dot;
   float min_h_dot;
-} GTP_Cfg_T;
+} GTP_Cfg_T;  // NOLINT(whitespace/braces)
 
-class GoToPointController {
+class GoToPointController
+{
  private:
   Pose_T pose_;
   float d_tol_;
@@ -49,17 +54,17 @@ class GoToPointController {
   bool aligned_ = false;
   uint8_t delay_cnt_;
   Waypoint_T dest_;
-  robo_car_if::cmd cmd_;
+  robo_car_ros_if::cmd cmd_;
   float org_dist_to_pnt_;
 
  public:
-  GoToPointController(GTP_Cfg_T* cfg);
-  robo_car_if::cmd Execute(void);
+  explicit GoToPointController(GTP_Cfg_T* cfg);
+  robo_car_ros_if::cmd Execute(void);
   void UpdateDestination(Waypoint_T* dest);
   bool InRoute(void);
   void UpdatePose(const nav_msgs::Odometry::ConstPtr& msg);
 };
 
-} // namespace robo_car_if
+}  // namespace robo_car_ros_if
 
-#endif  // ROBO_CAR_IF_GO_TO_POINT_H_
+#endif  // ROBO_CAR_ROS_IF_GO_TO_POINT_H_
