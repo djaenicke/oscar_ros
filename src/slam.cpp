@@ -2,9 +2,12 @@
 #include "robo_car_ros_if/state.h"
 #include "robo_car_ros_if/footprint.h"
 #include "robo_car_ros_if/cals.h"
+
 #include <tf/transform_broadcaster.h>
 #include <nav_msgs/Odometry.h>
 #include <sensor_msgs/Imu.h>
+#include <std_srvs/Empty.h>
+#include <signal.h>
 
 #define XX 0
 #define XY 1
@@ -24,9 +27,10 @@
 #define FXOS_AX_VARIANCE 2.71782E-05
 #define FXOS_AY_VARIANCE 4.62584E-05
 
-void InitEkfMsgs(void);
-void StateMsgUpdateCallBack(const robo_car_ros_if::state::ConstPtr& msg);
-void ComputeOdometry(float r_w_speed, float l_w_speed, double dt);
+static void InitEkfMsgs(void);
+static void StateMsgUpdateCallBack(const robo_car_ros_if::state::ConstPtr& msg);
+static void ComputeOdometry(float r_w_speed, float l_w_speed, double dt);
+static void SigintHandler(int sig);
 
 static robo_car_ros_if::Footprint robot_footprint;
 
@@ -37,6 +41,9 @@ static ros::Publisher footprint_pub;
 static ros::Publisher imu_mpu_pub;
 static ros::Publisher imu_fxos_pub;
 
+// ServiceClient
+static ros::ServiceClient rplidar_stop_client;
+
 static nav_msgs::Odometry odom;
 static sensor_msgs::Imu mpu;
 static sensor_msgs::Imu fxos;
@@ -46,10 +53,13 @@ static double x  = 0;
 static double y  = 0;
 static double th = 0;
 
+
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "pose_estimation");
   ros::NodeHandle nh;
+
+  signal(SIGINT, SigintHandler);
 
   current_time = ros::Time::now();
   last_time = ros::Time::now();
@@ -60,6 +70,19 @@ int main(int argc, char **argv)
   footprint_pub = nh.advertise<geometry_msgs::PolygonStamped>("robot_footprint", 100);
   imu_mpu_pub = nh.advertise<sensor_msgs::Imu>("imu_mpu", 100);
   imu_fxos_pub = nh.advertise<sensor_msgs::Imu>("imu_fxos", 100);
+
+  // Start the rplidar motor
+  ros::ServiceClient rplidar_start_client = nh.serviceClient<std_srvs::Empty::Request, std_srvs::Empty::Response>("start_motor");
+  rplidar_stop_client = nh.serviceClient<std_srvs::Empty::Request, std_srvs::Empty::Response>("stop_motor");
+  std_srvs::Empty::Request empty_req;
+  std_srvs::Empty::Response empty_res;
+
+  // Make sure the lidar is spinning
+  if (!rplidar_start_client.call(empty_req, empty_res))
+  {
+    ROS_ERROR("rplidar motor didn't start");
+    ros::shutdown();
+  }
 
   // Configure the robot's footprint as a rectangle for rviz
   robot_footprint.SetPoint(robo_car_ros_if::RR, -0.07, -0.08);
@@ -80,7 +103,7 @@ int main(int argc, char **argv)
   }
 }
 
-void InitEkfMsgs(void)
+static void InitEkfMsgs(void)
 {
   mpu.header.frame_id = "base_link";
   fxos.header.frame_id = "base_link";
@@ -97,7 +120,7 @@ void InitEkfMsgs(void)
   fxos.linear_acceleration_covariance[YY] = FXOS_AY_VARIANCE;
 }
 
-void StateMsgUpdateCallBack(const robo_car_ros_if::state::ConstPtr& msg)
+static void StateMsgUpdateCallBack(const robo_car_ros_if::state::ConstPtr& msg)
 {
   static double zero_yaw;
   static bool init = false;
@@ -138,7 +161,7 @@ void StateMsgUpdateCallBack(const robo_car_ros_if::state::ConstPtr& msg)
   fxos.orientation = tf::createQuaternionMsgFromYaw(yaw);
 }
 
-void ComputeOdometry(float l_w_speed, float r_w_speed, double dt)
+static void ComputeOdometry(float l_w_speed, float r_w_speed, double dt)
 {
   geometry_msgs::Quaternion odom_quat;
 
@@ -169,4 +192,15 @@ void ComputeOdometry(float l_w_speed, float r_w_speed, double dt)
   odom.twist.twist.angular.z = yaw_rate;
 
   odom_pub.publish(odom);
+}
+
+static void SigintHandler(int sig)
+{
+  std_srvs::Empty::Request empty_req;
+  std_srvs::Empty::Response empty_res;
+  
+  // Stop the lidar motor to conserve battery
+  rplidar_stop_client.call(empty_req, empty_res);
+
+  ros::shutdown();
 }

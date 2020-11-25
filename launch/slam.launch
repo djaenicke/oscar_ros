@@ -1,0 +1,4 @@
+<launch>
+  <include file="$(find robo_car_ros_if)/launch/ekf.launch"/>
+  <node pkg="robo_car_ros_if" type="slam" name="slam"/>
+</launch>

@@ -38,14 +38,14 @@ add_dependencies(go_to_point robo_car_ros_if_generate_messages_cpp)
 add_executable(teleop src/teleop.cpp)
 add_dependencies(teleop robo_car_ros_if_generate_messages_cpp)
 
-add_executable(pose_estimation src/pose_estimation.cpp)
-add_dependencies(pose_estimation robo_car_ros_if_generate_messages_cpp)
+add_executable(slam src/slam.cpp)
+add_dependencies(slam robo_car_ros_if_generate_messages_cpp)
 
 add_executable(simple_nav src/simple_nav.cpp)
 add_dependencies(simple_nav robo_car_ros_if_generate_messages_cpp)
 
 target_link_libraries(teleop ${catkin_LIBRARIES})
-target_link_libraries(pose_estimation ${catkin_LIBRARIES})
+target_link_libraries(slam ${catkin_LIBRARIES})
 target_link_libraries(simple_nav go_to_point ${catkin_LIBRARIES})
 
 set(ROSLINT_CPP_OPTS "--filter=-legal/copyright")
