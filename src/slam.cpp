@@ -32,8 +32,6 @@ static void StateMsgUpdateCallBack(const robo_car_ros_if::state::ConstPtr& msg);
 static void ComputeOdometry(float r_w_speed, float l_w_speed, double dt);
 static void SigintHandler(int sig);
 
-static robo_car_ros_if::Footprint robot_footprint;
-
 // Pubs and Subs
 static ros::Subscriber state_sub;
 static ros::Publisher odom_pub;
@@ -84,14 +82,26 @@ int main(int argc, char **argv)
     ros::shutdown();
   }
 
-  // Configure the robot's footprint as a rectangle for rviz
-  robot_footprint.SetPoint(robo_car_ros_if::RR, -0.07, -0.08);
-  robot_footprint.SetPoint(robo_car_ros_if::RL, -0.07,  0.08);
-  robot_footprint.SetPoint(robo_car_ros_if::FL,  0.15,  0.08);
-  robot_footprint.SetPoint(robo_car_ros_if::FR,  0.15, -0.08);
+  // Configure the robot's footprint for rviz
+  int num_points;
+  nh.getParam("robot_footprint_points", num_points);
+  robo_car_ros_if::Footprint robot_footprint = robo_car_ros_if::Footprint(num_points);
+
+  std::vector<float> points_x;
+  std::vector<float> points_y;
+  nh.getParam("robot_footprint_x", points_x);
+  nh.getParam("robot_footprint_y", points_y);
+
+  for (uint8_t i = 0; i < num_points; i++)
+  {
+    robot_footprint.AddPoint(points_x[i], points_y[i]);
+  }
+
+  float embedded_update_rate;
+  nh.getParam("embeddded_update_rate", embedded_update_rate);
 
   // Process incoming state messages at 2 times the update rate
-  ros::Rate loop_rate(1/(EMBEDDED_UPDATE_RATE/2));  // (Hz)
+  ros::Rate loop_rate(1 / (embedded_update_rate / 2));  // (Hz)
 
   InitEkfMsgs();
 

@@ -47,7 +47,7 @@ int main(int argc, char **argv)
   ros::Subscriber odom_sub = nh.subscribe("odometry/filtered", 100,
                                           &robo_car_ros_if::GoToPointController::UpdatePose, &gtp_controller);
   ros::Publisher marker_pub = nh.advertise<visualization_msgs::Marker>("visualization_marker", 10);
-  ros::Rate loop_rate(1/EXE_RATE);  // (Hz)
+  ros::Rate loop_rate(1 / EXE_RATE);  // (Hz)
 
   cmd_pub = nh.advertise<robo_car_ros_if::cmd>("robo_car_cmd", 100);
 
