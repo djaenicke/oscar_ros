@@ -140,12 +140,12 @@ Visualization Manager:
       Value: true
     - Alpha: 1
       Class: rviz/Axes
-      Enabled: true
+      Enabled: false
       Length: 0.20000000298023224
       Name: Axes
       Radius: 0.029999999329447746
       Reference Frame: odom
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -194,6 +194,14 @@ Visualization Manager:
       Unreliable: false
       Use Timestamp: false
       Value: true
+    - Alpha: 1
+      Class: rviz/Axes
+      Enabled: true
+      Length: 0.20000000298023224
+      Name: Axes
+      Radius: 0.029999999329447746
+      Reference Frame: base_link
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -222,7 +230,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 8.606598854064941
+      Distance: 7.7756452560424805
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -238,9 +246,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.7047966718673706
+      Pitch: 0.4897969365119934
       Target Frame: <Fixed Frame>
-      Yaw: 4.62318229675293
+      Yaw: 4.698179721832275
     Saved: ~
 Window Geometry:
   Displays:
