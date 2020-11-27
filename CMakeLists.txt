@@ -35,6 +35,9 @@ include_directories(
 add_library(go_to_point src/go_to_point.cpp)
 add_dependencies(go_to_point robo_car_ros_if_generate_messages_cpp)
 
+add_executable(velocity_cmd src/velocity_cmd.cpp)
+add_dependencies(velocity_cmd robo_car_ros_if_generate_messages_cpp)
+
 add_executable(teleop src/teleop.cpp)
 add_dependencies(teleop robo_car_ros_if_generate_messages_cpp)
 
@@ -44,6 +47,7 @@ add_dependencies(odometry robo_car_ros_if_generate_messages_cpp)
 add_executable(simple_nav src/simple_nav.cpp)
 add_dependencies(simple_nav robo_car_ros_if_generate_messages_cpp)
 
+target_link_libraries(velocity_cmd ${catkin_LIBRARIES})
 target_link_libraries(teleop ${catkin_LIBRARIES})
 target_link_libraries(odometry ${catkin_LIBRARIES})
 target_link_libraries(simple_nav go_to_point ${catkin_LIBRARIES})

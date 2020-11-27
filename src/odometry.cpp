@@ -11,6 +11,7 @@
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <sensor_msgs/Imu.h>
 #include <signal.h>
+#include <vector>
 
 #define XX 0
 #define XY 1
