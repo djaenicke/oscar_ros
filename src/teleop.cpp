@@ -1,5 +1,5 @@
 #include "ros/ros.h"
-#include "robo_car_ros_if/cmd.h"
+#include <geometry_msgs/Twist.h>
 #include <signal.h>
 #include <termios.h>
 #include <stdio.h>
@@ -45,12 +45,12 @@ int main(int argc, char **argv)
   bool listen = true;
   char key;
 
-  robo_car_ros_if::cmd cmd_msg;
+  geometry_msgs::Twist vel_cmd;
 
   ros::init(argc, argv, "teleop");
 
   ros::NodeHandle nh;
-  ros::Publisher cmd_pub = nh.advertise<robo_car_ros_if::cmd>("robo_car_cmd", 100);
+  ros::Publisher vel_cmd_pub = nh.advertise<geometry_msgs::Twist>("/cmd_vel", 100);
 
   ros::Rate read_rate = 100;  // (Hz)
 
@@ -67,45 +67,35 @@ int main(int argc, char **argv)
     {
       case KEYCODE_F:
         printf("FORWARD\r\n");
-        cmd_msg.r_wheel_sp = 15.0;
-        cmd_msg.l_wheel_sp = 15.0;
-        cmd_msg.stop = 0;
+        vel_cmd.linear.x = 0.5;
+        vel_cmd.angular.z = 0.0;
         dirty = true;
         break;
       case KEYCODE_B:
         printf("BACK\r\n");
-        cmd_msg.r_wheel_sp = -15.0;
-        cmd_msg.l_wheel_sp = -15.0;
-        cmd_msg.stop = 0;
+        vel_cmd.linear.x = -0.5;
+        vel_cmd.angular.z = 0.0;
         dirty = true;
         break;
       case KEYCODE_L:
         printf("LEFT\r\n");
-        cmd_msg.r_wheel_sp =  6.0;
-        cmd_msg.l_wheel_sp = -6.0;
-        cmd_msg.stop = 0;
+        vel_cmd.linear.x = 0.0;
+        vel_cmd.angular.z = 1.8;
         dirty = true;
         break;
       case KEYCODE_R:
         printf("RIGHT\r\n");
-        cmd_msg.r_wheel_sp = -6.0;
-        cmd_msg.l_wheel_sp =  6.0;
-        cmd_msg.stop = 0;
-        dirty = true;
-        break;
-      case 's':
-        printf("STOP\r\n");
-        cmd_msg.r_wheel_sp = 0.0;
-        cmd_msg.l_wheel_sp = 0.0;
-        cmd_msg.stop = 1;
+        vel_cmd.linear.x = 0.0;
+        vel_cmd.angular.z = -1.8;
         dirty = true;
         break;
       case '\x03':
         printf("\r\nStopping the robot and ending the teleop program\r\n");
         listen = false;
-        cmd_msg.r_wheel_sp = 0.0;
-        cmd_msg.l_wheel_sp = 0.0;
-        cmd_msg.stop = 1;
+      case 's':
+        printf("STOP\r\n");
+        vel_cmd.linear.x = 0.0;
+        vel_cmd.angular.z = 0.0;
         dirty = true;
         break;
       default:
@@ -114,7 +104,7 @@ int main(int argc, char **argv)
 
     if (dirty == true)
     {
-      cmd_pub.publish(cmd_msg);
+      vel_cmd_pub.publish(vel_cmd);
       dirty = false;
     }
 
