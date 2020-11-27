@@ -76,11 +76,7 @@ int main(int argc, char **argv)
   std_srvs::Empty::Response empty_res;
 
   // Make sure the lidar is spinning
-  if (!rplidar_start_client.call(empty_req, empty_res))
-  {
-    ROS_ERROR("rplidar motor didn't start");
-    ros::shutdown();
-  }
+  rplidar_start_client.call(empty_req, empty_res);
 
   // Configure the robot's footprint for rviz
   int num_points;

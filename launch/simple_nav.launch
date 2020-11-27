@@ -1,4 +1,4 @@
 <launch>
-  <include file="$(find robo_car_ros_if)/launch/slam.launch"/>
+  <include file="$(find robo_car_ros_if)/config/odometry.launch"/>
   <node pkg="robo_car_ros_if" type="simple_nav" name="simple_nav"/>
 </launch>

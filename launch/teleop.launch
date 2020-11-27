@@ -1,4 +1,3 @@
 <launch>
-  <include file="$(find robo_car_ros_if)/launch/slam.launch"/>
   <node pkg="robo_car_ros_if" type="teleop" name="teleop"/>
 </launch>

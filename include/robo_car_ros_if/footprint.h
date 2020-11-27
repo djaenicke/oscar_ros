@@ -17,7 +17,7 @@ class Footprint
   uint8_t point_idx_;
 
  public:
-  Footprint(uint8_t num_points)
+  explicit Footprint(uint8_t num_points)
   {
     polygon_msg_.header.frame_id = "base_link";
     polygon_msg_.polygon.points.reserve(num_points);
