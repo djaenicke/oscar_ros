@@ -1,4 +1,0 @@
-<launch>
-  <include file="$(find robo_car_ros_if)/src/launch/localization.launch"/>
-  <node pkg="robo_car_ros_if" type="teleop" name="teleop"/>
-</launch>

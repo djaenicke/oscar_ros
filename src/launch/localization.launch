@@ -1,4 +1,0 @@
-<launch>
-  <include file="$(find robo_car_ros_if)/src/launch/ekf.launch"/>
-  <node pkg="robo_car_ros_if" type="pose_estimation" name="pose_estimation"/>
-</launch>

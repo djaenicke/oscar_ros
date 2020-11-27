@@ -20,8 +20,8 @@
 static ros::Publisher cmd_pub;
 static robo_car_ros_if::cmd cmd_msg;
 
-void MySigintHandler(int sig);
-void RobotForceStop(void);
+static void SigintHandler(int sig);
+static void RobotForceStop(void);
 
 int main(int argc, char **argv)
 {
@@ -47,12 +47,12 @@ int main(int argc, char **argv)
   ros::Subscriber odom_sub = nh.subscribe("odometry/filtered", 100,
                                           &robo_car_ros_if::GoToPointController::UpdatePose, &gtp_controller);
   ros::Publisher marker_pub = nh.advertise<visualization_msgs::Marker>("visualization_marker", 10);
-  ros::Rate loop_rate(1/EXE_RATE);  // (Hz)
+  ros::Rate loop_rate(1 / EXE_RATE);  // (Hz)
 
   cmd_pub = nh.advertise<robo_car_ros_if::cmd>("robo_car_cmd", 100);
 
   // Override the default ros sigint handler.
-  signal(SIGINT, MySigintHandler);
+  signal(SIGINT, SigintHandler);
 
   // Configure the path as a vector of waypoints
   waypoints.push_back({1.0, 0.0});
@@ -117,13 +117,13 @@ int main(int argc, char **argv)
   return 0;
 }
 
-void MySigintHandler(int sig)
+static void SigintHandler(int sig)
 {
   RobotForceStop();
   ros::shutdown();
 }
 
-void RobotForceStop(void)
+static void RobotForceStop(void)
 {
   cmd_msg.l_wheel_sp = 0.0;
   cmd_msg.r_wheel_sp = 0.0;
