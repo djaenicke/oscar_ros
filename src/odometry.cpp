@@ -80,13 +80,13 @@ int main(int argc, char **argv)
 
   // Configure the robot's footprint for rviz
   int num_points;
-  nh.getParam("robot_footprint_points", num_points);
+  nh.getParam("/odometry/robot_footprint_points", num_points);
   robo_car_ros_if::Footprint robot_footprint = robo_car_ros_if::Footprint(num_points);
 
   std::vector<float> points_x;
   std::vector<float> points_y;
-  nh.getParam("robot_footprint_x", points_x);
-  nh.getParam("robot_footprint_y", points_y);
+  nh.getParam("/odometry/robot_footprint_x", points_x);
+  nh.getParam("/odometry/robot_footprint_y", points_y);
 
   for (uint8_t i = 0; i < num_points; i++)
   {
@@ -130,6 +130,7 @@ int main(int argc, char **argv)
   fxos.linear_acceleration_covariance[YY] = FXOS_AY_VARIANCE;
 
   ros::spin();
+  return 0;
 }
 
 static void InitPoseCallBack(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg)
