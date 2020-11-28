@@ -64,6 +64,7 @@ geometry_msgs::Twist GoToPointController::Execute(void)
     if (fabs(omega) < min_h_dot_)
     {
       delay_cnt_++;
+      omega = sign * min_h_dot_;
     }
     else
     {
