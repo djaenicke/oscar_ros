@@ -68,7 +68,7 @@ int main(int argc, char **argv)
   current_time = ros::Time::now();
   last_time = ros::Time::now();
 
-  state_sub = nh.subscribe("robo_car_state", 100, StateMsgUpdateCallBack);
+  state_sub = nh.subscribe("robot_state", 100, StateMsgUpdateCallBack);
   init_pose_sub = nh.subscribe("initialpose", 100, InitPoseCallBack);
 
   reset_ekf_pose = nh.serviceClient<robot_localization::SetPose>("/set_pose");

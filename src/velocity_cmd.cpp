@@ -42,7 +42,7 @@ int main(int argc, char **argv)
   }
 
   vel_cmd_sub = nh.subscribe("/cmd_vel", 100, VelocityCmdUpdateCallBack);
-  robot_cmd_pub = nh.advertise<oscar_pi::cmd>("robo_car_cmd", 100);
+  robot_cmd_pub = nh.advertise<oscar_pi::cmd>("robot_cmd", 100);
 
   ros::spin();
 }
