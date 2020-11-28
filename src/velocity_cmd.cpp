@@ -1,6 +1,6 @@
 #include "ros/ros.h"
-#include "robo_car_ros_if/cmd.h"
 
+#include <oscar_pi/cmd.h>
 #include <geometry_msgs/Twist.h>
 #include <ros/console.h>
 
@@ -42,14 +42,14 @@ int main(int argc, char **argv)
   }
 
   vel_cmd_sub = nh.subscribe("/cmd_vel", 100, VelocityCmdUpdateCallBack);
-  robot_cmd_pub = nh.advertise<robo_car_ros_if::cmd>("robo_car_cmd", 100);
+  robot_cmd_pub = nh.advertise<oscar_pi::cmd>("robot_cmd", 100);
 
   ros::spin();
 }
 
 static void VelocityCmdUpdateCallBack(const geometry_msgs::Twist::ConstPtr& msg)
 {
-  robo_car_ros_if::cmd cmd;
+  oscar_pi::cmd cmd;
 
   cmd.r_wheel_sp = (msg->linear.x + ((msg->angular.z * wheel_base) / 2)) / wheel_radius;
   cmd.l_wheel_sp = (msg->linear.x - ((msg->angular.z * wheel_base) / 2)) / wheel_radius;
