@@ -1,8 +1,8 @@
 #include "ros/ros.h"
-#include "robo_car_ros_if/state.h"
 #include "robo_car_ros_if/footprint.h"
 #include "robot_localization/SetPose.h"
 
+#include <oscar_pi/state.h>
 #include <tf/transform_broadcaster.h>
 #include <tf/LinearMath/Matrix3x3.h>
 #include <nav_msgs/Odometry.h>
@@ -30,7 +30,7 @@
 #define FXOS_AY_VARIANCE 4.62584E-05
 
 static void InitPoseCallBack(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg);
-static void StateMsgUpdateCallBack(const robo_car_ros_if::state::ConstPtr& msg);
+static void StateMsgUpdateCallBack(const oscar_pi::state::ConstPtr& msg);
 static void PublishOdometry(void);
 
 // Pubs and Subs
@@ -162,7 +162,7 @@ static void InitPoseCallBack(const geometry_msgs::PoseWithCovarianceStamped::Con
   PublishOdometry();
 }
 
-static void StateMsgUpdateCallBack(const robo_car_ros_if::state::ConstPtr& msg)
+static void StateMsgUpdateCallBack(const oscar_pi::state::ConstPtr& msg)
 {
   static double zero_yaw;
   static bool init = false;
