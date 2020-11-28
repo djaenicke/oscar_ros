@@ -23,19 +23,19 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "velocity_cmd");
   ros::NodeHandle nh;
 
-  if (!nh.getParam("wheel_base", wheel_base))
+  if (!nh.getParam("/velocity_cmd/wheel_base", wheel_base))
   {
     ROS_ERROR("wheel_base rosparam undefined");
     ros::shutdown();
   }
 
-  if (!nh.getParam("wheel_radius", wheel_radius))
+  if (!nh.getParam("/velocity_cmd/wheel_radius", wheel_radius))
   {
     ROS_ERROR("wheel_radius rosparam undefined");
     ros::shutdown();
   }
 
-  if (!nh.getParam("max_wheel_speed", max_wheel_speed))
+  if (!nh.getParam("/velocity_cmd/max_wheel_speed", max_wheel_speed))
   {
     ROS_ERROR("max_wheel_speed rosparam undefined");
     ros::shutdown();

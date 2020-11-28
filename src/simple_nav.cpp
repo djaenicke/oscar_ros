@@ -15,7 +15,7 @@
 #define KD_H      (0.0f)    /* heading angle D gain   */
 
 #define EXE_RATE (0.050)
-#define EXES_PER_SEC (1/EXE_RATE)
+#define EXES_PER_SEC (1 / EXE_RATE)
 
 static ros::Publisher vel_cmd_pub;
 static geometry_msgs::Twist vel_cmd;

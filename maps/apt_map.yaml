@@ -1,4 +1,4 @@
-image: /home/devin/apt_map.pgm
+image: apt_map.pgm
 resolution: 0.050000
 origin: [-1.459933, -2.883010, 0.000000]
 negate: 0
