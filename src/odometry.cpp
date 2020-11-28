@@ -1,8 +1,6 @@
 #include "ros/ros.h"
 #include "robo_car_ros_if/state.h"
 #include "robo_car_ros_if/footprint.h"
-#include "robo_car_ros_if/cals.h"
-
 #include "robot_localization/SetPose.h"
 
 #include <tf/transform_broadcaster.h>
@@ -11,6 +9,7 @@
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <sensor_msgs/Imu.h>
 #include <signal.h>
+#include <vector>
 
 #define XX 0
 #define XY 1
@@ -30,7 +29,6 @@
 #define FXOS_AX_VARIANCE 2.71782E-05
 #define FXOS_AY_VARIANCE 4.62584E-05
 
-static void InitEkfMsgs(void);
 static void InitPoseCallBack(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg);
 static void StateMsgUpdateCallBack(const robo_car_ros_if::state::ConstPtr& msg);
 static void PublishOdometry(void);
@@ -49,6 +47,7 @@ static ros::ServiceClient reset_ekf_pose;
 static nav_msgs::Odometry odom;
 static sensor_msgs::Imu mpu;
 static sensor_msgs::Imu fxos;
+static geometry_msgs::PolygonStamped robot_polygon;
 
 static ros::Time current_time, last_time;
 static double x_dot = 0;
@@ -56,6 +55,10 @@ static double x = 0;
 static double y = 0;
 static double th = 0;
 static double th_dot = 0;
+
+// Calibrations
+static float wheel_base;  // (m)
+static float wheel_radius;  // (m)
 
 int main(int argc, char **argv)
 {
@@ -89,25 +92,29 @@ int main(int argc, char **argv)
   {
     robot_footprint.AddPoint(points_x[i], points_y[i]);
   }
+  robot_polygon = robot_footprint.GetPolyStampedMsg();
 
+  // Set parameters
   float embedded_update_rate;
-  nh.getParam("embeddded_update_rate", embedded_update_rate);
-
-  // Process incoming state messages at 2 times the update rate
-  ros::Rate loop_rate(1 / (embedded_update_rate / 2));  // (Hz)
-
-  InitEkfMsgs();
-
-  while (ros::ok())
+  if (!nh.getParam("/odometry/embeddded_update_rate", embedded_update_rate))
   {
-    ros::spinOnce();
-    footprint_pub.publish(robot_footprint.GetPolyStampedMsg());
-    loop_rate.sleep();
+    ROS_ERROR("embedded_update_rate rosparam undefined");
+    ros::shutdown();
   }
-}
 
-static void InitEkfMsgs(void)
-{
+  if (!nh.getParam("/odometry/wheel_base", wheel_base))
+  {
+    ROS_ERROR("wheel_base rosparam undefined");
+    ros::shutdown();
+  }
+
+  if (!nh.getParam("/odometry/wheel_radius", wheel_radius))
+  {
+    ROS_ERROR("wheel_radius rosparam undefined");
+    ros::shutdown();
+  }
+
+  // Init EKF messages
   mpu.header.frame_id = "base_link";
   fxos.header.frame_id = "base_link";
 
@@ -121,6 +128,8 @@ static void InitEkfMsgs(void)
 
   mpu.linear_acceleration_covariance[YY] = MPU_AY_VARIANCE;
   fxos.linear_acceleration_covariance[YY] = FXOS_AY_VARIANCE;
+
+  ros::spin();
 }
 
 static void InitPoseCallBack(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg)
@@ -167,9 +176,9 @@ static void StateMsgUpdateCallBack(const robo_car_ros_if::state::ConstPtr& msg)
   last_time = current_time;
 
   // Compute the odometry
-  const double vr = msg->r_wheel_fb * WHEEL_RADIUS;  // Right wheel translational velocity
-  const double vl = msg->l_wheel_fb * WHEEL_RADIUS;  // Left wheel translational velocity
-  const double th_dot = (vr - vl) / WHEEL_BASE;  // Robot angular velocity
+  const double vr = msg->r_wheel_fb * wheel_radius;  // Right wheel translational velocity
+  const double vl = msg->l_wheel_fb * wheel_radius;  // Left wheel translational velocity
+  const double th_dot = (vr - vl) / wheel_base;  // Robot angular velocity
 
   x_dot = (vr + vl) / 2;  // Robot translational velocity
 
@@ -191,6 +200,7 @@ static void StateMsgUpdateCallBack(const robo_car_ros_if::state::ConstPtr& msg)
   mpu.linear_acceleration.y = msg->mpu_ay;
   mpu.linear_acceleration.z = msg->mpu_az;
   imu_mpu_pub.publish(mpu);
+  mpu.header.seq++;
 
   fxos.header.stamp = current_time;
   fxos.linear_acceleration.x = msg->fxos_ax;
@@ -198,6 +208,7 @@ static void StateMsgUpdateCallBack(const robo_car_ros_if::state::ConstPtr& msg)
   fxos.linear_acceleration.z = msg->fxos_az;
 
   imu_fxos_pub.publish(fxos);
+  fxos.header.seq++;
 
   if (!init)
   {
@@ -228,4 +239,9 @@ static void PublishOdometry(void)
   odom.twist.twist.angular.z = th_dot;
 
   odom_pub.publish(odom);
+  odom.header.seq++;
+
+  robot_polygon.header.stamp = current_time;
+  footprint_pub.publish(robot_polygon);
+  robot_polygon.header.seq++;
 }

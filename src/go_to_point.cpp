@@ -6,7 +6,6 @@
  */
 
 #include "robo_car_ros_if/go_to_point.h"
-#include "robo_car_ros_if/cals.h"
 #include <tf/LinearMath/Matrix3x3.h>
 
 /* Controller Design
@@ -29,10 +28,8 @@ GoToPointController::GoToPointController(GTP_Cfg_T* cfg)
   pose_.theta = 0;
 }
 
-robo_car_ros_if::cmd GoToPointController::Execute(void)
+geometry_msgs::Twist GoToPointController::Execute(void)
 {
-  float vr, vl;            /* Desired linear wheel velocities */
-  float robot_v;           /* Robot linear velocity */
   float theta_d, theta_e;  /* Heading difference and heading error */
   float omega;
   float sp;
@@ -56,7 +53,7 @@ robo_car_ros_if::cmd GoToPointController::Execute(void)
   /* Align heading angle before translating */
   if (!aligned_)
   {
-    robot_v = 0;
+    cmd_.linear.x = 0;
 
     /* Saturate the yaw rate */
     if (fabs(omega) > max_h_dot_)
@@ -84,17 +81,12 @@ robo_car_ros_if::cmd GoToPointController::Execute(void)
     /* Compute the linear velocity */
     /* The distance to the point is normalized to ensure the max possible
       speed is simply kp_v_ + feedforward velocity */ 
-    robot_v = (kp_v_ * d / org_dist_to_pnt_) + ff_v_;
+    cmd_.linear.x = (kp_v_ * d / org_dist_to_pnt_) + ff_v_;
   }
 
   if (d > d_tol_)
   {
-    /* Determine the required linear velocities */
-    vr = robot_v + (omega * (WHEEL_BASE / 2));
-    vl = robot_v - (omega * (WHEEL_BASE / 2));
-
-    cmd_.r_wheel_sp = vr / WHEEL_RADIUS;
-    cmd_.l_wheel_sp = vl / WHEEL_RADIUS;
+    cmd_.angular.z = omega;
   }
   else
   {

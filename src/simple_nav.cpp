@@ -1,9 +1,9 @@
 #include "ros/ros.h"
 #include <signal.h>
 #include <vector>
-#include "robo_car_ros_if/cals.h"
 #include "robo_car_ros_if/go_to_point.h"
 #include <visualization_msgs/Marker.h>
+#include <geometry_msgs/Twist.h>
 
 /* Tuning parameters */
 #define D_TOL     (0.05f)   /* Distance to goal tolerance (m) */
@@ -17,8 +17,8 @@
 #define EXE_RATE (0.050)
 #define EXES_PER_SEC (1/EXE_RATE)
 
-static ros::Publisher cmd_pub;
-static robo_car_ros_if::cmd cmd_msg;
+static ros::Publisher vel_cmd_pub;
+static geometry_msgs::Twist vel_cmd;
 
 static void SigintHandler(int sig);
 static void RobotForceStop(void);
@@ -32,7 +32,7 @@ int main(int argc, char **argv)
   gtp_cfg.kp_v  = KP_V;
   gtp_cfg.ff_v  = FF_V;
   gtp_cfg.kp_h  = KP_H;
-  gtp_cfg.max_h_dot = MAX_ABS_YAW_RATE / 4;  // Limit max rotational speed
+  gtp_cfg.max_h_dot = 2.0;  // Limit max rotational speed
   gtp_cfg.min_h_dot = 0.4;  // (rad/s)
 
   robo_car_ros_if::GoToPointController gtp_controller(&gtp_cfg);
@@ -49,7 +49,7 @@ int main(int argc, char **argv)
   ros::Publisher marker_pub = nh.advertise<visualization_msgs::Marker>("visualization_marker", 10);
   ros::Rate loop_rate(1 / EXE_RATE);  // (Hz)
 
-  cmd_pub = nh.advertise<robo_car_ros_if::cmd>("robo_car_cmd", 100);
+  vel_cmd_pub = nh.advertise<geometry_msgs::Twist>("/cmd_vel", 100);
 
   // Override the default ros sigint handler.
   signal(SIGINT, SigintHandler);
@@ -89,7 +89,7 @@ int main(int argc, char **argv)
 
     if (gtp_controller.InRoute())
     {
-      cmd_msg = gtp_controller.Execute();
+      vel_cmd = gtp_controller.Execute();
     }
     else
     {
@@ -110,7 +110,7 @@ int main(int argc, char **argv)
 
     points.header.stamp = ros::Time::now();
     marker_pub.publish(points);
-    cmd_pub.publish(cmd_msg);
+    vel_cmd_pub.publish(vel_cmd);
     loop_rate.sleep();
   }
 
@@ -125,14 +125,13 @@ static void SigintHandler(int sig)
 
 static void RobotForceStop(void)
 {
-  cmd_msg.l_wheel_sp = 0.0;
-  cmd_msg.r_wheel_sp = 0.0;
-  cmd_msg.stop = 1;
+  vel_cmd.linear.x = 0.0;
+  vel_cmd.angular.z = 0.0;
 
   /* Send multiple times just to be sure */
   for (uint8_t i = 0; i < 5; i++)
   {
-    cmd_pub.publish(cmd_msg);
+    vel_cmd_pub.publish(vel_cmd);
     ros::Duration(EXE_RATE).sleep();
   }
 }
