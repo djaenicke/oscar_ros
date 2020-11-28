@@ -45,6 +45,8 @@ int main(int argc, char **argv)
   robot_cmd_pub = nh.advertise<oscar_pi::cmd>("robot_cmd", 100);
 
   ros::spin();
+
+  return 0;
 }
 
 static void VelocityCmdUpdateCallBack(const geometry_msgs::Twist::ConstPtr& msg)

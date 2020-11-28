@@ -130,6 +130,7 @@ int main(int argc, char **argv)
   fxos.linear_acceleration_covariance[YY] = FXOS_AY_VARIANCE;
 
   ros::spin();
+  return 0;
 }
 
 static void InitPoseCallBack(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg)
