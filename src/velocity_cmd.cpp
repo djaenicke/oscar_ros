@@ -3,12 +3,15 @@
 #include <oscar_pi/cmd.h>
 #include <geometry_msgs/Twist.h>
 #include <ros/console.h>
+#include <sensor_msgs/Range.h>
 
 static void VelocityCmdUpdateCallBack(const geometry_msgs::Twist::ConstPtr& msg);
+static void RangeSensorUpdateCallBack(const sensor_msgs::Range::ConstPtr& msg);
 
 // Pubs and Subs
 static ros::Subscriber vel_cmd_sub;
 static ros::Publisher robot_cmd_pub;
+static ros::Subscriber range_sensor_sub;
 
 // Calibrations
 static const float stop_threshold = 0.001;
@@ -17,6 +20,11 @@ static float wheel_radius;  // (m)
 
 // Constraints
 static float max_wheel_speed;  // (rad/s)
+
+static oscar_pi::cmd cmd;
+static bool obj_detected = false;
+static bool moving_fwd = false;
+static float obj_dist = 0.0f;
 
 int main(int argc, char **argv)
 {
@@ -42,7 +50,8 @@ int main(int argc, char **argv)
   }
 
   vel_cmd_sub = nh.subscribe("/cmd_vel", 100, VelocityCmdUpdateCallBack);
-  robot_cmd_pub = nh.advertise<oscar_pi::cmd>("robot_cmd", 100);
+  robot_cmd_pub = nh.advertise<oscar_pi::cmd>("/robot_cmd", 100);
+  range_sensor_sub = nh.subscribe("/fwd_uss", 100, RangeSensorUpdateCallBack);
 
   ros::spin();
 
@@ -51,11 +60,18 @@ int main(int argc, char **argv)
 
 static void VelocityCmdUpdateCallBack(const geometry_msgs::Twist::ConstPtr& msg)
 {
-  oscar_pi::cmd cmd;
-
   cmd.r_wheel_sp = (msg->linear.x + ((msg->angular.z * wheel_base) / 2)) / wheel_radius;
   cmd.l_wheel_sp = (msg->linear.x - ((msg->angular.z * wheel_base) / 2)) / wheel_radius;
 
+  if (msg->linear.x > 0)
+  {
+    moving_fwd = true;
+  }
+  else
+  {
+    moving_fwd = false;
+  }
+  
   // Saturate the wheel rotational velocities
   if (fabs(cmd.l_wheel_sp) > max_wheel_speed)
   {
@@ -92,4 +108,18 @@ static void VelocityCmdUpdateCallBack(const geometry_msgs::Twist::ConstPtr& msg)
   }
 
   robot_cmd_pub.publish(cmd);
+}
+
+static void RangeSensorUpdateCallBack(const sensor_msgs::Range::ConstPtr& msg)
+{
+  if ((msg->range > msg->min_range) && (msg->range < msg->max_range))
+  {
+    // Range is valid
+    if (moving_fwd && (msg->range < 0.1))
+    {
+      // Object in path
+      cmd.stop = 1;
+      robot_cmd_pub.publish(cmd);
+    }
+  }
 }

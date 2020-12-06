@@ -1,3 +1,7 @@
 <launch>
+  <include file="$(find robo_car_ros_if)/launch/odometry.launch"/>
+  <node pkg="robo_car_ros_if" type="velocity_cmd" name="velocity_cmd">
+    <rosparam command="load" file="$(find robo_car_ros_if)/config/robot_cfg.yaml"/>
+  </node>
   <node pkg="robo_car_ros_if" type="teleop" name="teleop"/>
 </launch>

@@ -1,6 +1,7 @@
 <launch>
   <include file="$(find robo_car_ros_if)/launch/ekf.launch"/>
   <node pkg="tf" type="static_transform_publisher" name="laser_2_base_broadcaster" args="0.05675 -0.01053 0 0 0 0 1 base_link laser 100" />
+  <node pkg="tf" type="static_transform_publisher" name="fwd_uss_2_base_broadcaster" args="0.1255 0 0 0 0 0 1 base_link fwd_uss 100" />
   <node pkg="robo_car_ros_if" type="odometry" name="odometry">
     <rosparam command="load" file="$(find robo_car_ros_if)/config/robot_cfg.yaml"/>
   </node>
