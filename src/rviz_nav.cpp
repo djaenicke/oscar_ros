@@ -7,11 +7,12 @@
 
 
 /* Tuning parameters */
-#define D_TOL     (0.05f)   /* Distance to goal tolerance (m) */
-#define H_TOL     (0.2f)    /* Angle tolerance when rotating in place (rad) */
-#define KP_V      (0.4f)    /* linear velocity P gain */
-#define FF_V      (0.5f)    /* linear velocity feedforward term */
-#define KP_H      (12.5f)   /* heading angle P gain   */
+#define D_TOL (0.05f)  /* Distance to goal tolerance (m) */
+#define H_TOL (0.2f)   /* Angle tolerance when rotating in place (rad) */
+#define KP_D (0.4f)    /* linear distance P gain */
+#define FF_V (0.5f)    /* linear velocity feedforward term */
+#define KP_H_ALIGN (5.0f)      /* heading angle P gain during alignment state  */
+#define KP_H_TRANSLATE (5.0f)  /* heading angle P gain during translate state  */
 
 static void NavGoalUpdateCallBack(const geometry_msgs::PoseStamped::ConstPtr& msg);
 
@@ -28,13 +29,12 @@ int main(int argc, char **argv)
 {
   robo_car_ros_if::GTP_Cfg_T gtp_cfg;
 
-  gtp_cfg.d_tol = D_TOL;
-  gtp_cfg.h_tol = H_TOL;
-  gtp_cfg.kp_v  = KP_V;
+  gtp_cfg.max_heading_err = H_TOL;
+  gtp_cfg.max_dist_err = D_TOL;
+  gtp_cfg.kp_h_align = KP_H_ALIGN;
+  gtp_cfg.kp_h_translate = KP_H_TRANSLATE;
+  gtp_cfg.kp_d  = KP_D;
   gtp_cfg.ff_v  = FF_V;
-  gtp_cfg.kp_h  = KP_H;
-  gtp_cfg.max_h_dot = 2.0;  // Limit max rotational speed
-  gtp_cfg.min_h_dot = 0.8;  // (rad/s)
 
   robo_car_ros_if::GoToPointController gtp_controller(&gtp_cfg);
   ros::init(argc, argv, "rviz_nav");
@@ -70,16 +70,7 @@ int main(int argc, char **argv)
       new_dest = false;
     }
 
-    if (gtp_controller.InRoute())
-    {
-      vel_cmd = gtp_controller.Execute();
-    }
-    else
-    {
-      vel_cmd.linear.x = 0.0;
-      vel_cmd.angular.z = 0.0;
-    }
-
+    vel_cmd = gtp_controller.Execute();
     dest_marker.header.stamp = ros::Time::now();
     vis_pub.publish(dest_marker);
     vel_cmd_pub.publish(vel_cmd);

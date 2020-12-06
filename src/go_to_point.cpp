@@ -6,6 +6,8 @@
  */
 
 #include "robo_car_ros_if/go_to_point.h"
+
+#include <ros/console.h>
 #include <tf/LinearMath/Matrix3x3.h>
 
 /* Controller Design
@@ -13,103 +15,89 @@
 namespace robo_car_ros_if
 {
 
-GoToPointController::GoToPointController(GTP_Cfg_T* cfg)
+GoToPointController::GoToPointController(const GTP_Cfg_T *const cfg)
 {
-  d_tol_ = cfg->d_tol;
-  h_tol_ = cfg->h_tol;
-  kp_v_  = cfg->kp_v;
-  ff_v_  = cfg->ff_v;
-  kp_h_  = cfg->kp_h;
-  min_h_dot_ = cfg->min_h_dot;
-  max_h_dot_ = cfg->max_h_dot;
-  in_route_ = false;
   pose_.x = 0;
   pose_.y = 0;
   pose_.theta = 0;
+
+  state_ = IDLE;
+
+  if (NULL != cfg)
+  {
+    (void)memcpy(&cfg_, cfg, sizeof(GTP_Cfg_T));
+  }
 }
 
 geometry_msgs::Twist GoToPointController::Execute(void)
 {
-  float theta_d, theta_e;  /* Heading difference and heading error */
-  float omega;
-  float sp;
-  float d;
-  int8_t sign;
-
-  /* Compute the desired heading */
-  sp = atan2f(dest_.y - pose_.y, dest_.x - pose_.x);
-
-  /* Compute the distance from the destination */
-  d = sqrt(pow(dest_.x - pose_.x, 2) + pow(dest_.y - pose_.y, 2));
-
-  /* Heading difference and error */
-  theta_d = sp - pose_.theta;
-  theta_e = atan2f(sinf(theta_d), cosf(theta_d));
-  omega = kp_h_ * theta_e;
-
-  /* Determine the sign of omega */
-  sign = signbit(omega) ? -1 : 1;
-
-  /* Align heading angle before translating */
-  if (!aligned_)
+  if (state_ != IDLE)
   {
-    cmd_.linear.x = 0;
+    float heading_diff = heading_sp_ - pose_.theta;
+    float heading_error = atan2f(sinf(heading_diff), cosf(heading_diff));
 
-    /* Saturate the yaw rate */
-    if (fabs(omega) > max_h_dot_)
+    if (ALIGN_HEADING == state_)
     {
-      omega = sign * max_h_dot_;
-    }
-
-    if (fabs(omega) < min_h_dot_)
-    {
-      delay_cnt_++;
-      omega = sign * min_h_dot_;
+      AlignHeading(heading_error);
     }
     else
     {
-      delay_cnt_ = 0;
+      Translate(heading_error);
     }
-
-    if (delay_cnt_ >= 5 && theta_e < h_tol_)
-    {
-      aligned_ = true;
-    }
-  }
-
-  if (aligned_)
-  {
-    /* Compute the linear velocity */
-    /* The distance to the point is normalized to ensure the max possible
-      speed is simply kp_v_ + feedforward velocity */ 
-    cmd_.linear.x = (kp_v_ * d / org_dist_to_pnt_) + ff_v_;
-  }
-
-  if (d > d_tol_)
-  {
-    cmd_.angular.z = omega;
   }
   else
   {
-    in_route_ = false;
+    cmd_.linear.x = 0;
+    cmd_.angular.z = 0;
   }
 
   return cmd_;
 }
 
-void GoToPointController::UpdateDestination(Waypoint_T* dest)
+void GoToPointController::AlignHeading(const float heading_error)
+{
+  cmd_.linear.x = 0;
+
+  if (fabs(heading_error) > cfg_.max_heading_err)
+  {
+    cmd_.linear.x = 0;
+    cmd_.angular.z = cfg_.kp_h_align * heading_error;
+  }
+  else
+  {
+    state_ = TRANSLATE;
+    cmd_.linear.x = 0;
+    cmd_.angular.z = 0;
+  }
+}
+
+void GoToPointController::Translate(const float heading_error)
+{
+  float d = sqrt(pow(dest_.x - pose_.x, 2) + pow(dest_.y - pose_.y, 2));
+
+  if (d > cfg_.max_dist_err)
+  {
+    /* Compute the linear velocity */
+    /* The distance to the point is normalized to ensure the max possible
+      speed is simply kp_v_ + feedforward velocity */ 
+    cmd_.linear.x = (cfg_.kp_d * (d / org_dist_to_pnt_)) + cfg_.ff_v;
+    cmd_.angular.z = cfg_.kp_h_translate * heading_error;
+  }
+  else
+  {
+    state_ = IDLE;
+    cmd_.linear.x = 0;
+    cmd_.angular.z = 0;
+  }
+}
+
+void GoToPointController::UpdateDestination(const Waypoint_T *const dest)
 {
   dest_.x = dest->x;
   dest_.y = dest->y;
   org_dist_to_pnt_ = sqrt(pow(dest_.x - pose_.x, 2) + pow(dest_.y - pose_.y, 2));
-  in_route_  = true;
-  aligned_   = false;
-  delay_cnt_ = 0;
-}
-
-bool GoToPointController::InRoute(void)
-{
-  return (in_route_);
+  heading_sp_ = atan2f(dest_.y - pose_.y, dest_.x - pose_.x);
+  state_  = ALIGN_HEADING;
 }
 
 void GoToPointController::UpdatePose(const nav_msgs::Odometry::ConstPtr& msg)
