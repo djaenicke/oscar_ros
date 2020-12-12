@@ -22,9 +22,8 @@ static float wheel_radius;  // (m)
 static float max_wheel_speed;  // (rad/s)
 
 static oscar_pi::cmd cmd;
-static bool obj_detected = false;
+static bool obj_detected = true;
 static bool moving_fwd = false;
-static float obj_dist = 0.0f;
 
 int main(int argc, char **argv)
 {
@@ -107,6 +106,11 @@ static void VelocityCmdUpdateCallBack(const geometry_msgs::Twist::ConstPtr& msg)
     cmd.stop = 1;
   }
 
+  if (obj_detected && moving_fwd)
+  {
+    cmd.stop = 1;
+  }
+
   robot_cmd_pub.publish(cmd);
 }
 
@@ -115,11 +119,16 @@ static void RangeSensorUpdateCallBack(const sensor_msgs::Range::ConstPtr& msg)
   if ((msg->range > msg->min_range) && (msg->range < msg->max_range))
   {
     // Range is valid
-    if (moving_fwd && (msg->range < 0.1))
+    if (moving_fwd && (msg->range < 0.125))
     {
       // Object in path
+      obj_detected = true;
       cmd.stop = 1;
       robot_cmd_pub.publish(cmd);
+    }
+    else
+    {
+      obj_detected = false;
     }
   }
 }
