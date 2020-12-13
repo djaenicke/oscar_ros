@@ -29,13 +29,10 @@
 #define FXOS_AX_COVARIANCE 2.71782E-05
 #define FXOS_AY_COVARIANCE 4.62584E-05
 
-static void InitPoseCallBack(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg);
 static void StateMsgUpdateCallBack(const oscar_pi::state::ConstPtr& msg);
-static void PublishOdometry(void);
 
 // Pubs and Subs
 static ros::Subscriber state_sub;
-static ros::Subscriber init_pose_sub;
 static ros::Publisher odom_pub;
 static ros::Publisher footprint_pub;
 static ros::Publisher imu_mpu_pub;
@@ -69,7 +66,6 @@ int main(int argc, char **argv)
   last_time = ros::Time::now();
 
   state_sub = nh.subscribe("robot_state", 100, StateMsgUpdateCallBack);
-  init_pose_sub = nh.subscribe("initialpose", 100, InitPoseCallBack);
 
   reset_ekf_pose = nh.serviceClient<robot_localization::SetPose>("/set_pose");
 
@@ -137,36 +133,6 @@ int main(int argc, char **argv)
   return 0;
 }
 
-static void InitPoseCallBack(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg)
-{
-  x = msg->pose.pose.position.x;
-  y = msg->pose.pose.position.y;
-
-  tf::Quaternion q(msg->pose.pose.orientation.x, msg->pose.pose.orientation.y,
-                   msg->pose.pose.orientation.z, msg->pose.pose.orientation.w);
-  tf::Matrix3x3 m(q);
-  double roll, pitch, yaw;
-  m.getRPY(roll, pitch, yaw);
-  th = yaw;
-
-  robot_localization::SetPose set_pose;
-
-  set_pose.request.pose.header.stamp = ros::Time::now();
-  set_pose.request.pose.header.frame_id = "odom";
-  for (size_t ind = 0; ind < 36; ind += 7)
-  {
-    set_pose.request.pose.pose.covariance[ind] = 1e-9;
-  }
-  set_pose.request.pose.pose.pose.position.x = x;
-  set_pose.request.pose.pose.pose.position.y = y;
-  set_pose.request.pose.pose.pose.orientation = tf::createQuaternionMsgFromYaw(th);
-
-  reset_ekf_pose.call(set_pose);
-
-  current_time = ros::Time::now();
-  PublishOdometry();
-}
-
 static void StateMsgUpdateCallBack(const oscar_pi::state::ConstPtr& msg)
 {
   static double zero_yaw;
@@ -195,7 +161,26 @@ static void StateMsgUpdateCallBack(const oscar_pi::state::ConstPtr& msg)
   y += delta_y;
   th += delta_th;
 
-  PublishOdometry();
+  // Since all odometry is 6DOF we'll need a quaternion created from yaw
+  geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(th);
+
+  odom.header.stamp = current_time;
+
+  odom.pose.pose.position.x = x;
+  odom.pose.pose.position.y = y;
+  odom.pose.pose.position.z = 0.0;
+  odom.pose.pose.orientation = odom_quat;
+
+  odom.twist.twist.linear.x = x_dot;
+  odom.twist.twist.linear.y = 0;
+  odom.twist.twist.angular.z = th_dot;
+
+  odom_pub.publish(odom);
+  odom.header.seq++;
+
+  robot_polygon.header.stamp = current_time;
+  footprint_pub.publish(robot_polygon);
+  robot_polygon.header.seq++;
 
   mpu.header.stamp = current_time;
   mpu.angular_velocity.x = msg->mpu_gx;
@@ -223,30 +208,4 @@ static void StateMsgUpdateCallBack(const oscar_pi::state::ConstPtr& msg)
 
   yaw = atan2(msg->fxos_mx, msg->fxos_my) - zero_yaw;
   fxos.orientation = tf::createQuaternionMsgFromYaw(yaw);
-}
-
-static void PublishOdometry(void)
-{
-  geometry_msgs::Quaternion odom_quat;
-
-  // Since all odometry is 6DOF we'll need a quaternion created from yaw
-  odom_quat = tf::createQuaternionMsgFromYaw(th);
-
-  odom.header.stamp = current_time;
-
-  odom.pose.pose.position.x = x;
-  odom.pose.pose.position.y = y;
-  odom.pose.pose.position.z = 0.0;
-  odom.pose.pose.orientation = odom_quat;
-
-  odom.twist.twist.linear.x = x_dot;
-  odom.twist.twist.linear.y = 0;
-  odom.twist.twist.angular.z = th_dot;
-
-  odom_pub.publish(odom);
-  odom.header.seq++;
-
-  robot_polygon.header.stamp = current_time;
-  footprint_pub.publish(robot_polygon);
-  robot_polygon.header.seq++;
 }
