@@ -1,3 +1,6 @@
+# Set to true when using simtime
+reset_on_time_jump: false
+
 # The frequency, in Hz, at which the filter will output a position estimate. Note that the filter will not begin
 # computation until it receives at least one message from one of the inputs. It will then run continuously at the
 # frequency specified here, regardless of whether it receives more measurements. Defaults to 30 if unspecified.
@@ -72,6 +75,7 @@ world_frame: odom           # Defaults to the value of odom_frame if unspecified
 odom0: /odom
 imu0: /imu_mpu
 # TODO imu1: /imu_fxos
+
 # Each sensor reading updates some or all of the filter's state. These options give you greater control over which
 # values from each measurement are fed to the filter. For example, if you have an odometry message as input, but only
 # want to use its Z position value, then set the entire vector to false, except for the third entry. The order of the
@@ -80,7 +84,7 @@ imu0: /imu_mpu
 # has no pose information, so the first six values would be meaningless in that case. Each vector defaults to all false
 # if unspecified, effectively making this parameter required for each sensor.
 odom0_config: [false, false, false,  # x, y, z
-               false, false, true,  # roll, pitch, yaw
+               false, false, true,   # roll, pitch, yaw
                true,  true,  false,  # vx, vy, vz
                false, false, false,  # vroll, vpitch, vyaw
                false, false, false]  # ax, ay, az
@@ -89,7 +93,7 @@ imu0_config: [false, false, false,  # x, y, z
               false, false, false,  # roll, pitch, yaw
               false, false, false,  # vx, vy, vz
               false, false, true,   # vroll, vpitch, vyaw
-              false, false, false]  # ax, ay, az
+              false, false, false]   # ax, ay, az
 
 imu1_config: [false, false, false,
               false, false, true,
@@ -185,7 +189,7 @@ process_noise_covariance: [0.05, 0,    0,    0,    0,    0,    0,     0,     0, 
                            0,    0,    0,    0,    0,    0,    0,     0,     0.04, 0,    0,    0,    0,    0,    0,
                            0,    0,    0,    0,    0,    0,    0,     0,     0,    0.01, 0,    0,    0,    0,    0,
                            0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0.01, 0,    0,    0,    0,
-                           0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    10.0, 0,    0,    0,
+                           0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0.02, 0,    0,    0,
                            0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0.01, 0,    0,
                            0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0.01, 0,
                            0,    0,    0,    0,    0,    0,    0,     0,     0,    0,    0,    0,    0,    0,    0.015]

@@ -21,13 +21,13 @@
 #define ZY 7
 #define ZZ 8
 
-#define MPU_AX_COVARIANCE 0.000191916
-#define MPU_AY_COVARIANCE 0.000207292
+#define MPU_AX_VARIANCE 0.000191916
+#define MPU_AY_VARIANCE 0.000207292
 
-#define MPU_GZ_COVARIANCE 2.95646E-05
+#define MPU_GZ_VARIANCE 2.95646E-05
 
-#define FXOS_AX_COVARIANCE 2.71782E-05
-#define FXOS_AY_COVARIANCE 4.62584E-05
+#define FXOS_AX_VARIANCE 2.71782E-05
+#define FXOS_AY_VARIANCE 4.62584E-05
 
 static void StateMsgUpdateCallBack(const oscar_pi::state::ConstPtr& msg);
 
@@ -117,17 +117,19 @@ int main(int argc, char **argv)
   odom.header.frame_id = "odom";
   odom.child_frame_id = "base_link";
 
-  mpu.angular_velocity_covariance[ZZ] = MPU_GZ_COVARIANCE;
+  mpu.angular_velocity_covariance[ZZ] = MPU_GZ_VARIANCE;
 
-  mpu.linear_acceleration_covariance[XX] = MPU_AX_COVARIANCE;
-  fxos.linear_acceleration_covariance[XX] = FXOS_AX_COVARIANCE;
+  mpu.linear_acceleration_covariance[XX] = MPU_AX_VARIANCE;
+  fxos.linear_acceleration_covariance[XX] = FXOS_AX_VARIANCE;
 
-  mpu.linear_acceleration_covariance[YY] = MPU_AY_COVARIANCE;
-  fxos.linear_acceleration_covariance[YY] = FXOS_AY_COVARIANCE;
+  mpu.linear_acceleration_covariance[YY] = MPU_AY_VARIANCE;
+  fxos.linear_acceleration_covariance[YY] = FXOS_AY_VARIANCE;
 
+  // TODO need to revisit these
   odom.twist.covariance[0] = 1e-3;   // x with respect to x
   odom.twist.covariance[7] = 1e-6;   // y with respect to y
-  odom.twist.covariance[35] = 1e-4;    // rotation about Z axis with respect to rotation about Z axis
+  odom.twist.covariance[35] = 1e-4;  // rotation about Z axis with respect to rotation about Z axis
+  odom.pose.covariance[35] = 1e-4;   // rotation about Z axis with respect to rotation about Z axis
 
   ros::spin();
   return 0;
