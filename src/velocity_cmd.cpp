@@ -48,6 +48,48 @@ int main(int argc, char **argv)
     ros::shutdown();
   }
 
+  if (!nh.getParam("/velocity_cmd/r_kp", cmd.r_kp))
+  {
+    ROS_ERROR("r_kp rosparam undefined");
+    ros::shutdown();
+  }
+
+  if (!nh.getParam("/velocity_cmd/r_ki", cmd.r_ki))
+  {
+    ROS_ERROR("r_ki rosparam undefined");
+    ros::shutdown();
+  }
+
+  if (!nh.getParam("/velocity_cmd/r_kd", cmd.r_kd))
+  {
+    ROS_ERROR("r_kd rosparam undefined");
+    ros::shutdown();
+  }
+
+  if (!nh.getParam("/velocity_cmd/l_kp", cmd.l_kp))
+  {
+    ROS_ERROR("l_kp rosparam undefined");
+    ros::shutdown();
+  }
+
+  if (!nh.getParam("/velocity_cmd/l_ki", cmd.l_ki))
+  {
+    ROS_ERROR("l_ki rosparam undefined");
+    ros::shutdown();
+  }
+
+  if (!nh.getParam("/velocity_cmd/l_kd", cmd.l_kd))
+  {
+    ROS_ERROR("l_kd rosparam undefined");
+    ros::shutdown();
+  }
+
+  if (!nh.getParam("/velocity_cmd/wheel_speed_filt_alpha", cmd.wheel_speed_filt_alpha))
+  {
+    ROS_ERROR("wheel_speed_filt_alpha rosparam undefined");
+    ros::shutdown();
+  }
+
   vel_cmd_sub = nh.subscribe("/cmd_vel", 100, VelocityCmdUpdateCallBack);
   robot_cmd_pub = nh.advertise<oscar_pi::cmd>("/robot_cmd", 100);
   range_sensor_sub = nh.subscribe("/fwd_uss", 100, RangeSensorUpdateCallBack);

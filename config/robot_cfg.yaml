@@ -9,3 +9,15 @@ robot_footprint_y: [-0.1249,  0.1249, 0.1249, 0.0950, 0.0200, -0.0200, -0.0950, 
 wheel_base: 0.225 # m
 wheel_radius: 0.0335 # m
 max_wheel_speed: 30 # rad/s
+
+# Right motor PID gains
+r_kp: 1.2
+r_ki: 7.5
+r_kd: 0.0
+
+# Left motor PID gains
+l_kp: 1.2
+l_ki: 7.5
+l_kd: 0.0
+
+wheel_speed_filt_alpha: 0.4
