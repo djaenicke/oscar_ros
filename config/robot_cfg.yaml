@@ -1,5 +1,3 @@
-embeddded_update_rate: 0.025 # s
-
 # x1, x2, ..., xn
 # y1, y2, ..., yn
 robot_footprint_points: 8 # n
