@@ -27,11 +27,6 @@ static sensor_msgs::Imu mpu;
 static geometry_msgs::PolygonStamped robot_polygon;
 
 static ros::Time current_time, last_time;
-static double x_dot = 0;
-static double x = 0;
-static double y = 0;
-static double th = 0;
-static double th_dot = 0;
 
 // Calibrations
 static float wheel_base;  // (m)
@@ -97,27 +92,17 @@ int main(int argc, char **argv)
 
 static void StateMsgUpdateCallBack(const oscar_pi::state::ConstPtr& msg)
 {
-  static double zero_yaw;
-  static bool init = false;
-  double yaw, dt;
-
   // Compute time between state messages
   current_time = ros::Time::now();
-  dt = (current_time - last_time).toSec();
+  const double dt = (current_time - last_time).toSec();
   last_time = current_time;
 
   // Compute the odometry
   const double vr = msg->r_wheel_fb * wheel_radius;  // Right wheel translational velocity
   const double vl = msg->l_wheel_fb * wheel_radius;  // Left wheel translational velocity
 
-  th_dot = (vr - vl) / wheel_base;  // Robot angular velocity
-  x_dot = (vr + vl) / 2;  // Robot translational velocity
-
-  double delta_x = (x_dot * cos(th)) * dt;
-  double delta_y = (x_dot * sin(th)) * dt;
-
-  x += delta_x;
-  y += delta_y;
+  const double th_dot = (vr - vl) / wheel_base;  // Robot angular velocity
+  const double x_dot = (vr + vl) / 2;  // Robot translational velocity
 
   odom.header.stamp = current_time;
   odom.twist.twist.linear.x = x_dot;
