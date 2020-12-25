@@ -1,6 +1,5 @@
 #include "ros/ros.h"
 #include "robo_car_ros_if/footprint.h"
-#include "robot_localization/SetPose.h"
 
 #include <oscar_pi/state.h>
 #include <tf/transform_broadcaster.h>
@@ -34,7 +33,7 @@ static float wheel_radius;  // (m)
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "pose_estimation");
+  ros::init(argc, argv, "odometry");
   ros::NodeHandle nh;
 
   current_time = ros::Time::now();
