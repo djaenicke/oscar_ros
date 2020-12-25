@@ -1,6 +1,0 @@
-<launch>
-  <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se" clear_params="true">
-    <rosparam command="load" file="$(find robo_car_ros_if)/config/ekf.yaml"/>
-    <remap from="/odometry/filtered" to="/odom"/>
-  </node>
-</launch>

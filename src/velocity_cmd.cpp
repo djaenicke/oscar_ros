@@ -112,7 +112,7 @@ static void VelocityCmdUpdateCallBack(const geometry_msgs::Twist::ConstPtr& msg)
   {
     moving_fwd = false;
   }
-  
+
   // Saturate the wheel rotational velocities
   if (fabs(cmd.l_wheel_sp) > max_wheel_speed)
   {
