@@ -5,6 +5,6 @@ footprint: [[-0.0325, -0.1249], [-0.0325, -0.1249], [-0.0325, 0.1249], [0.0325, 
             [0.1525, 0.0200], [0.1525, -0.0200], [0.0625, -0.0950], [0.0325, -0.1249]]
 inflation_radius: 0.55
 
-observation_sources: laser_scan_sensor point_cloud_sensor
+observation_sources: laser_scan_sensor
 
 laser_scan_sensor: {sensor_frame: laser, data_type: LaserScan, topic: scan, marking: true, clearing: true}

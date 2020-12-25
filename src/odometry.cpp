@@ -15,14 +15,14 @@ static void StateMsgUpdateCallBack(const oscar_pi::state::ConstPtr& msg);
 
 // Pubs and Subs
 static ros::Subscriber state_sub;
-static ros::Publisher odom_pub;
+static ros::Publisher odom_raw_pub;
 static ros::Publisher footprint_pub;
 static ros::Publisher imu_mpu_pub;
 
 // ServiceClients
 static ros::ServiceClient reset_ekf_pose;
 
-static nav_msgs::Odometry odom;
+static nav_msgs::Odometry odom_raw;
 static sensor_msgs::Imu mpu;
 static geometry_msgs::PolygonStamped robot_polygon;
 
@@ -44,7 +44,7 @@ int main(int argc, char **argv)
 
   reset_ekf_pose = nh.serviceClient<robot_localization::SetPose>("/set_pose");
 
-  odom_pub = nh.advertise<nav_msgs::Odometry>("odom", 100);
+  odom_raw_pub = nh.advertise<nav_msgs::Odometry>("odom/data_raw", 100);
   footprint_pub = nh.advertise<geometry_msgs::PolygonStamped>("robot_footprint", 100);
   imu_mpu_pub = nh.advertise<sensor_msgs::Imu>("imu/data_raw", 100);
 
@@ -79,12 +79,12 @@ int main(int argc, char **argv)
 
   mpu.header.frame_id = "base_link";
 
-  odom.header.frame_id = "odom";
-  odom.child_frame_id = "base_link";
+  odom_raw.header.frame_id = "odom";
+  odom_raw.child_frame_id = "base_link";
 
-  odom.twist.covariance[0] = 1e-5;   // x with respect to x
-  odom.twist.covariance[7] = 1e-6;   // y with respect to y
-  odom.twist.covariance[35] = 1e-2;  // rotation about Z axis with respect to rotation about Z axis
+  odom_raw.twist.covariance[0] = 1e-5;   // x with respect to x
+  odom_raw.twist.covariance[7] = 1e-6;   // y with respect to y
+  odom_raw.twist.covariance[35] = 1e-2;  // rotation about Z axis with respect to rotation about Z axis
 
   ros::spin();
   return 0;
@@ -104,13 +104,13 @@ static void StateMsgUpdateCallBack(const oscar_pi::state::ConstPtr& msg)
   const double th_dot = (vr - vl) / wheel_base;  // Robot angular velocity
   const double x_dot = (vr + vl) / 2;  // Robot translational velocity
 
-  odom.header.stamp = current_time;
-  odom.twist.twist.linear.x = x_dot;
-  odom.twist.twist.linear.y = 0;
-  odom.twist.twist.angular.z = th_dot;
+  odom_raw.header.stamp = current_time;
+  odom_raw.twist.twist.linear.x = x_dot;
+  odom_raw.twist.twist.linear.y = 0;
+  odom_raw.twist.twist.angular.z = th_dot;
 
-  odom_pub.publish(odom);
-  odom.header.seq++;
+  odom_raw_pub.publish(odom_raw);
+  odom_raw.header.seq++;
 
   robot_polygon.header.stamp = current_time;
   footprint_pub.publish(robot_polygon);
