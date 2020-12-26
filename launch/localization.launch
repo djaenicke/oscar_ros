@@ -2,7 +2,7 @@
   <arg name="machine" default="robo-pi"/>
 
   <!-- MAP SERVER -->
-  <node name="loc_map_server" pkg="map_server" type="map_server" args="$(find robo_car_ros_if)/maps/apt_map.yaml" output="screen"/>
+  <node name="loc_map_server" pkg="map_server" type="map_server" args="$(find oscar_ros)/maps/apt_map.yaml" output="screen"/>
 
   <!-- AMCL -->
   <node pkg="amcl" type="amcl" name="amcl" output="screen">

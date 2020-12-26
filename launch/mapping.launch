@@ -1,5 +1,5 @@
 <launch>
   <node pkg="slam_toolbox" type="sync_slam_toolbox_node" name="slam_toolbox" output="screen">
-    <rosparam command="load" file="$(find robo_car_ros_if)/config/mapper_params_online_sync.yaml" />
+    <rosparam command="load" file="$(find oscar_ros)/config/mapper_params_online_sync.yaml" />
   </node>
 </launch>

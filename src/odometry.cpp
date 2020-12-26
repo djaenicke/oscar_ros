@@ -1,5 +1,5 @@
 #include "ros/ros.h"
-#include "robo_car_ros_if/footprint.h"
+#include "oscar_ros/footprint.h"
 
 #include <oscar_pi/state.h>
 #include <tf/transform_broadcaster.h>
@@ -50,7 +50,7 @@ int main(int argc, char **argv)
   // Configure the robot's footprint for rviz
   int num_points;
   nh.getParam("/odometry/robot_footprint_points", num_points);
-  robo_car_ros_if::Footprint robot_footprint = robo_car_ros_if::Footprint(num_points);
+  oscar_ros::Footprint robot_footprint = oscar_ros::Footprint(num_points);
 
   std::vector<float> points_x;
   std::vector<float> points_y;

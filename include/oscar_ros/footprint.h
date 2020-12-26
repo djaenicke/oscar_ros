@@ -1,12 +1,12 @@
-#ifndef ROBO_CAR_ROS_IF_FOOTPRINT_H
-#define ROBO_CAR_ROS_IF_FOOTPRINT_H
+#ifndef OSCAR_ROS_FOOTPRINT_H
+#define OSCAR_ROS_FOOTPRINT_H
 
 #include "ros/ros.h"
 #include <ros/console.h>
 #include <geometry_msgs/Point32.h>
 #include <geometry_msgs/PolygonStamped.h>
 
-namespace robo_car_ros_if
+namespace oscar_ros
 {
 class Footprint
 {
@@ -51,6 +51,6 @@ class Footprint
   }
 };
 
-}  // namespace robo_car_ros_if
+}  // namespace oscar_ros
 
-#endif  // ROBO_CAR_ROS_IF_FOOTPRINT_H
+#endif  // OSCAR_ROS_FOOTPRINT_H

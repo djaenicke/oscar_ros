@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(robo_car_ros_if)
+project(oscar_ros)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -12,7 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES robo_car_ros_if
+  LIBRARIES oscar_ros
   CATKIN_DEPENDS roscpp rospy std_msgs
 )
 
