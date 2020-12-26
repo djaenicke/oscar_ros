@@ -1,12 +1,12 @@
 #include "ros/ros.h"
 
-#include <oscar_pi/cmd.h>
 #include <geometry_msgs/Twist.h>
+#include <oscar_pi/cmd.h>
 #include <ros/console.h>
 #include <sensor_msgs/Range.h>
 
-static void VelocityCmdUpdateCallBack(const geometry_msgs::Twist::ConstPtr& msg);
-static void RangeSensorUpdateCallBack(const sensor_msgs::Range::ConstPtr& msg);
+static void velocityCmdUpdateCallback(const geometry_msgs::Twist::ConstPtr& msg);
+static void rangeSensorUpdateCallback(const sensor_msgs::Range::ConstPtr& msg);
 
 // Pubs and Subs
 static ros::Subscriber vel_cmd_sub;
@@ -90,16 +90,16 @@ int main(int argc, char **argv)
     ros::shutdown();
   }
 
-  vel_cmd_sub = nh.subscribe("/cmd_vel", 100, VelocityCmdUpdateCallBack);
+  vel_cmd_sub = nh.subscribe("/cmd_vel", 100, velocityCmdUpdateCallback);
   robot_cmd_pub = nh.advertise<oscar_pi::cmd>("/robot_cmd", 100);
-  range_sensor_sub = nh.subscribe("/fwd_uss", 100, RangeSensorUpdateCallBack);
+  range_sensor_sub = nh.subscribe("/fwd_uss", 100, rangeSensorUpdateCallback);
 
   ros::spin();
 
   return 0;
 }
 
-static void VelocityCmdUpdateCallBack(const geometry_msgs::Twist::ConstPtr& msg)
+static void velocityCmdUpdateCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
   cmd.r_wheel_sp = (msg->linear.x + ((msg->angular.z * wheel_base) / 2)) / wheel_radius;
   cmd.l_wheel_sp = (msg->linear.x - ((msg->angular.z * wheel_base) / 2)) / wheel_radius;
@@ -156,7 +156,7 @@ static void VelocityCmdUpdateCallBack(const geometry_msgs::Twist::ConstPtr& msg)
   robot_cmd_pub.publish(cmd);
 }
 
-static void RangeSensorUpdateCallBack(const sensor_msgs::Range::ConstPtr& msg)
+static void rangeSensorUpdateCallback(const sensor_msgs::Range::ConstPtr& msg)
 {
   if ((msg->range > msg->min_range) && (msg->range < msg->max_range))
   {

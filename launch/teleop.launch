@@ -1,8 +1,8 @@
 <launch>
-  <include file="$(find robo_car_ros_if)/launch/robot_configuration.launch"/>
+  <include file="$(find oscar_ros)/launch/robot_configuration.launch"/>
 
   <!--- Run the map server and AMCL --> 
-  <include file="$(find robo_car_ros_if)/launch/localization.launch"/>
+  <include file="$(find oscar_ros)/launch/localization.launch"/>
 
-  <node pkg="robo_car_ros_if" type="teleop" name="teleop"/>
+  <node pkg="oscar_ros" type="teleop" name="teleop"/>
 </launch>

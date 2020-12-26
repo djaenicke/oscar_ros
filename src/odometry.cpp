@@ -1,25 +1,19 @@
 #include "ros/ros.h"
-#include "robo_car_ros_if/footprint.h"
 
-#include <oscar_pi/state.h>
-#include <tf/transform_broadcaster.h>
-#include <tf/LinearMath/Matrix3x3.h>
 #include <nav_msgs/Odometry.h>
-#include <geometry_msgs/PoseWithCovarianceStamped.h>
+#include <oscar_pi/cmd.h>
+#include "oscar_ros/footprint.h"
+#include <oscar_pi/state.h>
 #include <sensor_msgs/Imu.h>
-#include <signal.h>
 #include <vector>
 
-static void StateMsgUpdateCallBack(const oscar_pi::state::ConstPtr& msg);
+static void stateMsgUpdateCallBack(const oscar_pi::state::ConstPtr& msg);
 
 // Pubs and Subs
 static ros::Subscriber state_sub;
 static ros::Publisher odom_raw_pub;
 static ros::Publisher footprint_pub;
 static ros::Publisher imu_mpu_pub;
-
-// ServiceClients
-static ros::ServiceClient reset_ekf_pose;
 
 static nav_msgs::Odometry odom_raw;
 static sensor_msgs::Imu mpu;
@@ -28,8 +22,8 @@ static geometry_msgs::PolygonStamped robot_polygon;
 static ros::Time current_time, last_time;
 
 // Calibrations
-static float wheel_base;  // (m)
-static float wheel_radius;  // (m)
+static float wheel_base_m;  // (m)
+static float wheel_radius_m;  // (m)
 
 int main(int argc, char **argv)
 {
@@ -39,9 +33,7 @@ int main(int argc, char **argv)
   current_time = ros::Time::now();
   last_time = ros::Time::now();
 
-  state_sub = nh.subscribe("robot_state", 100, StateMsgUpdateCallBack);
-
-  reset_ekf_pose = nh.serviceClient<robot_localization::SetPose>("/set_pose");
+  state_sub = nh.subscribe("robot_state", 100, stateMsgUpdateCallBack);
 
   odom_raw_pub = nh.advertise<nav_msgs::Odometry>("odom/data_raw", 100);
   footprint_pub = nh.advertise<geometry_msgs::PolygonStamped>("robot_footprint", 100);
@@ -50,7 +42,7 @@ int main(int argc, char **argv)
   // Configure the robot's footprint for rviz
   int num_points;
   nh.getParam("/odometry/robot_footprint_points", num_points);
-  robo_car_ros_if::Footprint robot_footprint = robo_car_ros_if::Footprint(num_points);
+  oscar_ros::Footprint robot_footprint = oscar_ros::Footprint(num_points);
 
   std::vector<float> points_x;
   std::vector<float> points_y;
@@ -64,15 +56,15 @@ int main(int argc, char **argv)
   robot_polygon = robot_footprint.GetPolyStampedMsg();
 
   // Set parameters
-  if (!nh.getParam("/odometry/wheel_base", wheel_base))
+  if (!nh.getParam("/odometry/wheel_base_m", wheel_base_m))
   {
-    ROS_ERROR("wheel_base rosparam undefined");
+    ROS_ERROR("wheel_base_m rosparam undefined");
     ros::shutdown();
   }
 
-  if (!nh.getParam("/odometry/wheel_radius", wheel_radius))
+  if (!nh.getParam("/odometry/wheel_radius_m", wheel_radius_m))
   {
-    ROS_ERROR("wheel_radius rosparam undefined");
+    ROS_ERROR("wheel_radius_m rosparam undefined");
     ros::shutdown();
   }
 
@@ -89,7 +81,7 @@ int main(int argc, char **argv)
   return 0;
 }
 
-static void StateMsgUpdateCallBack(const oscar_pi::state::ConstPtr& msg)
+static void stateMsgUpdateCallBack(const oscar_pi::state::ConstPtr& msg)
 {
   // Compute time between state messages
   current_time = ros::Time::now();
@@ -97,10 +89,10 @@ static void StateMsgUpdateCallBack(const oscar_pi::state::ConstPtr& msg)
   last_time = current_time;
 
   // Compute the odometry
-  const double vr = msg->r_wheel_fb * wheel_radius;  // Right wheel translational velocity
-  const double vl = msg->l_wheel_fb * wheel_radius;  // Left wheel translational velocity
+  const double vr = msg->r_wheel_fb * wheel_radius_m;  // Right wheel translational velocity
+  const double vl = msg->l_wheel_fb * wheel_radius_m;  // Left wheel translational velocity
 
-  const double th_dot = (vr - vl) / wheel_base;  // Robot angular velocity
+  const double th_dot = (vr - vl) / wheel_base_m;  // Robot angular velocity
   const double x_dot = (vr + vl) / 2;  // Robot translational velocity
 
   odom_raw.header.stamp = current_time;

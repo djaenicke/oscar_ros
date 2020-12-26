@@ -3,9 +3,9 @@
   <node pkg="tf" type="static_transform_publisher" name="laser_2_base_broadcaster" args="0.05675 -0.01053 0 0 0 0 1 base_link laser 100" />
   <node pkg="tf" type="static_transform_publisher" name="fwd_uss_2_base_broadcaster" args="0.1255 0 0 0 0 0 1 base_link fwd_uss 100" />
 
-  <!-- Run the robo_car_ros_if odometry node for computing the raw odometry and publishing the raw imu data -->
-  <node pkg="robo_car_ros_if" type="odometry" name="odometry">
-    <rosparam command="load" file="$(find robo_car_ros_if)/config/robot_cfg.yaml"/>
+  <!-- Run the oscar_ros odometry node for computing the raw odometry and publishing the raw imu data -->
+  <node pkg="oscar_ros" type="odometry" name="odometry">
+    <rosparam command="load" file="$(find oscar_ros)/config/robot_cfg.yaml"/>
   </node>
 
   <!-- Run the imu_filter_madgwick imu_filter_node for filtering and estimating the imu data -->
@@ -16,12 +16,12 @@
 
   <!-- Run the robot_localization EKF for fusing raw odometry with imu to get the odom to base link TF -->
   <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se" clear_params="true">
-    <rosparam command="load" file="$(find robo_car_ros_if)/config/ekf.yaml"/>
+    <rosparam command="load" file="$(find oscar_ros)/config/ekf.yaml"/>
     <remap from="/odometry/filtered" to="/odom"/>
   </node>
 
-  <!-- Run the robo_car_ros_if velocity_cmd for computing wheel speeds from twist cmd -->
-  <node pkg="robo_car_ros_if" type="velocity_cmd" name="velocity_cmd">
-    <rosparam command="load" file="$(find robo_car_ros_if)/config/robot_cfg.yaml"/>
+  <!-- Run the oscar_ros velocity_cmd for computing wheel speeds from twist cmd -->
+  <node pkg="oscar_ros" type="velocity_cmd" name="velocity_cmd">
+    <rosparam command="load" file="$(find oscar_ros)/config/robot_cfg.yaml"/>
   </node>
 </launch>
